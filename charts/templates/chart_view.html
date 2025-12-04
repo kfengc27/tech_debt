@@ -1,0 +1,645 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Complexity Monitor Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<style>
+.projects-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+/* 右上角“View all projects” 按钮风格 */
+.projects-more-link{
+  font-size:13px;
+  padding:7px 14px;
+  border-radius:999px;
+  background:#111827;
+  color:#fff;
+  text-decoration:none;
+  font-weight:500;
+  white-space:nowrap;
+  transition:.2s;
+}
+.projects-more-link:hover{
+  background:#020617;
+  transform:translateY(-1px);
+}
+
+/* ================================= THEME ================================= */
+:root{
+  --bg:#ffffff; --bg-soft:#f4f6fa; --border:#e2e5eb;
+  --text:#111; --muted:#6e6e6e;
+  --radius:18px; --shadow:0 8px 22px rgba(0,0,0,0.05);
+  --primary:#4157ff;
+}
+
+/* ================================= BASE ================================= */
+body{
+  margin:0;background:#eef0f4;font-family:system-ui,Arial;
+  color:var(--text);line-height:1.45;
+}
+.page{
+  max-width:1450px;
+  margin:auto;
+  padding:24px 24px 30px;
+}
+
+/* ================================= HEADER ================================= */
+.header{
+  background:var(--bg);
+  padding:20px 22px;
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  border:1px solid var(--border);
+  margin-bottom:18px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.header-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+h1{
+  margin:0;
+  font-size:24px;
+  font-weight:700;
+}
+.sub{
+  margin:0;
+  color:var(--muted);
+  font-size:14px;
+}
+
+/* filename pill */
+.file-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:4px 10px;
+  border-radius:999px;
+  background:#f3f4ff;
+  color:#434190;
+  font-size:12px;
+}
+.file-pill strong{
+  max-width:260px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+/* BACK BUTTON */
+.back-btn{
+  margin-top:4px;
+  padding:7px 16px;
+  border-radius:999px;
+  background:var(--primary);
+  color:white;
+  text-decoration:none;
+  font-size:13px;
+  font-weight:500;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  transition:.25s;
+}
+.back-btn:hover{
+  background:#2c3dca;
+  transform:translateY(-2px);
+}
+
+/* ================================= MAIN CHART PANEL ================================= */
+.charts-container{
+  width:100%;
+  margin:auto;
+}
+
+/* 小标题栏 */
+.charts-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  margin:4px 2px 10px;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.charts-header-title{
+  font-size:16px;
+  font-weight:600;
+  color:#222;
+}
+.charts-header-sub{
+  font-size:12px;
+  color:var(--muted);
+}
+
+/* ===== Triple row ===== */
+.triple{
+  display:flex;
+  gap:18px;
+  width:100%;
+  margin-bottom:16px;
+}
+
+.chart-card{
+  background:var(--bg);
+  border-radius:var(--radius);
+  border:1px solid var(--border);
+  box-shadow:var(--shadow);
+  padding:14px 14px 16px;
+  flex:1;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+}
+.chart-card.small h3{
+  margin:0 0 8px;
+  font-size:14px;
+  font-weight:600;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.chart-tag{
+  font-size:11px;
+  padding:1px 7px;
+  border-radius:999px;
+  background:#eef2ff;
+  color:#4c51bf;
+}
+
+/* 图片容器 + Skeleton 动画 */
+.imgwrap{
+  flex:1;
+  margin-top:4px;
+  border-radius:14px;
+  overflow:hidden;
+  border:1px solid var(--border);
+  background:white;
+  position:relative;
+}
+
+/* skeleton 状态 */
+.chart-loading{
+  background:#f1f5f9;
+}
+.chart-loading::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(120deg,
+    #f1f5f9 0%,
+    #e5edf7 20%,
+    #f1f5f9 40%,
+    #f1f5f9 100%);
+  background-size:200% 100%;
+  animation:chart-shimmer 1.1s infinite;
+}
+
+/* 图片本体淡入 */
+.chart-img{
+  width:100%;
+  display:block;
+  cursor:zoom-in;
+  opacity:0;
+  transition:opacity .4s ease;
+}
+.chart-img.img-loaded{
+  opacity:1;
+}
+
+/* hover 放大（加载完成后也有） */
+.chart-img.img-loaded:hover{
+  transform:scale(1.03);
+}
+
+/* 图片高度控制：自适应但避免超高 */
+.imgwrap img{
+  max-height:320px;
+  object-fit:contain;
+}
+
+/* skeleton 动画关键帧 */
+@keyframes chart-shimmer{
+  0%{background-position:-150% 0;}
+  100%{background-position:150% 0;}
+}
+
+/* ================================= TEMPORAL VARIATION FULL-WIDTH BLOCK ================================= */
+.spotlight{
+  width:97%;
+  margin:26px auto 0;
+  padding:18px 20px 22px;
+  background:linear-gradient(135deg,#ffffff,#fff5f5);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  border:1px solid #f2c7c7;
+  border-left:6px solid #e63946;
+}
+.spotlight-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.spotlight h2{
+  margin:0;
+  margin-bottom:4px;
+  font-size:18px;
+  font-weight:700;
+}
+.spotlight .sub{
+  margin:0;
+  font-size:12px;
+}
+.badge-hot{
+  font-size:11px;
+  padding:2px 8px;
+  border-radius:999px;
+  background:#fee2e2;
+  color:#b91c1c;
+  font-weight:600;
+}
+.imgwrap.large{
+  margin-top:10px;
+}
+.imgwrap.large img{
+  max-height:480px;
+}
+
+/* ================================= RECENT PROJECTS GRID ================================= */
+.projects{
+  background:var(--bg);
+  padding:20px 22px;
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  border:1px solid var(--border);
+  margin-top:34px;
+}
+.projects-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.projects h2{
+  margin:0;
+  font-size:17px;
+  font-weight:700;
+}
+.projects-sub{
+  font-size:12px;
+  color:var(--muted);
+}
+
+.grid-files{
+  margin-top:16px;
+  display:grid;
+  gap:18px;
+  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+}
+.card-file{
+  height:110px;
+  border-radius:14px;
+  font-size:14px;
+  font-weight:600;
+  background:linear-gradient(145deg,#dee4ff,#cce5fd);
+  border:1px solid #ffffff50;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:8px;
+  transition:.25s;
+  cursor:pointer;
+}
+.card-file:hover{
+  transform:translateY(-3px) scale(1.02);
+  box-shadow:0 15px 25px rgba(0,0,0,.08);
+}
+
+/* ================================= FULLSCREEN IMAGE VIEW ================================= */
+.modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.86);
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+}
+.modal img{
+  max-width:92vw;
+  max-height:92vh;
+  border-radius:14px;
+  box-shadow:0 22px 45px rgba(0,0,0,.6);
+}
+.modal-close{
+  position:absolute;
+  top:18px;
+  right:24px;
+  color:#eee;
+  font-size:14px;
+}
+
+.footer{
+  margin-top:40px;
+  color:#9a9a9a;
+  font-size:12px;
+  text-align:center;
+}
+
+/* Mobile 优化 */
+@media(max-width:1050px){
+  .triple{
+    flex-direction:column;
+  }
+  .spotlight{
+    width:100%;
+  }
+}
+
+.card-file{
+  height:110px;
+  border-radius:14px;
+  font-size:14px;
+  font-weight:600;
+  background:linear-gradient(145deg,#dee4ff,#cce5fd);
+  border:1px solid #ffffff50;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:8px;
+  transition:.25s;
+  cursor:pointer;
+
+  /* 新增：作为链接用 */
+  text-decoration:none;
+  color:#111;
+}
+.card-file:hover{
+  transform:translateY(-3px) scale(1.02);
+  box-shadow:0 15px 25px rgba(0,0,0,.08);
+}
+
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- ================================= HEADER ================================= -->
+  <div class="header">
+  <div class="header-top">
+    <div>
+      <h1>Complexity Monitor</h1>
+      <p class="sub">Technical debt evolution · Envelope regression · Complexity trajectories</p>
+    </div>
+
+    {% if filename %}
+    <div class="file-pill">
+      <span>Current file:</span>
+      <strong title="{{ filename }}">{{ filename }}</strong>
+    </div>
+    {% endif %}
+  </div>
+<div style="
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-top:14px;
+    flex-wrap:nowrap;
+">
+
+  <!-- Back -->
+  <a href="/" 
+     style="
+       padding:8px 16px;
+       background:#4157FF;
+       color:white;
+       border-radius:999px;
+       font-size:13px;
+       font-weight:600;
+       text-decoration:none;
+       transition:.25s;
+     "
+     onmouseover="this.style.background='#2d42d6'"
+     onmouseout="this.style.background='#4157FF'">
+     ← Back to Home
+  </a>
+
+
+  <!-- Upload Project Button -->
+  <form id="uploadForm" action="/charts/" method="post" enctype="multipart/form-data" style="margin:0;">
+    {% csrf_token %}
+    <label style="
+        padding:8px 18px;
+        background:#10A573;
+        color:white;
+        border-radius:999px;
+        font-size:13px;
+        font-weight:600;
+        cursor:pointer;
+        white-space:nowrap;
+        transition:.25s;
+     "
+     onmouseover="this.style.background='#0B8D61'"
+     onmouseout="this.style.background='#10A573'">
+      ⬆ Upload another project
+      <input type="file" name="file" style="display:none"
+             onchange="document.getElementById('uploadForm').submit();">
+    </label>
+  </form>
+
+
+  <!-- Comparison Page Button -->
+  <a href="{% url 'compare_view' %}" 
+     style="
+       padding:8px 18px;
+       background:#111827;
+       color:#fff;
+       border-radius:999px;
+       font-size:13px;
+       font-weight:600;
+       text-decoration:none;
+       white-space:nowrap;
+       transition:.25s;
+     "
+     onmouseover="this.style.background='#000'"
+     onmouseout="this.style.background='#111827'">
+     📊 Open Project Comparison
+  </a>
+
+</div>
+
+</div>
+
+
+  <!-- =================================== MAIN CHART PANEL =================================== -->
+  <div class="charts-container">
+
+    <!-- 顶部 3 图小标题 -->
+    <div class="charts-header">
+      <div class="charts-header-title">Complexity Profile Overview</div>
+      <div class="charts-header-sub">Envelope · Raw timeline · Accumulative growth</div>
+    </div>
+
+    <section class="triple">
+
+      {% if segment_64 %}
+      <div class="chart-card small">
+        <h3>
+          📌 Complexity Envelope Segments
+          <span class="chart-tag">Segments</span>
+        </h3>
+        <div class="imgwrap">
+           <img class="zoom chart-img" src="data:image/png;base64,{{ segment_64 }}" alt="Envelope Segments">
+        </div>
+      </div>
+      {% endif %}
+
+      {% if time_complexity_b64 %}
+      <div class="chart-card small">
+        <h3>
+          📈 Complexity Timeline
+          <span class="chart-tag">Time-series</span>
+        </h3>
+        <div class="imgwrap">
+          <img class="zoom chart-img" src="data:image/png;base64,{{ time_complexity_b64 }}" alt="Complexity Timeline">
+        </div>
+      </div>
+      {% endif %}
+
+      {% if acc_chart_b64 %}
+      <div class="chart-card small">
+        <h3>
+          📊 Accumulative Complexity Growth
+          <span class="chart-tag">Cumulative</span>
+        </h3>
+        <div class="imgwrap">
+          <img class="zoom chart-img" src="data:image/png;base64,{{ acc_chart_b64 }}" alt="Accumulative Complexity">
+        </div>
+      </div>
+      {% endif %}
+
+    </section>
+
+
+    <!-- ================================= TEMPORAL VARIATION ================================= -->
+    {% if temporal_change_b64 %}
+    <section class="spotlight">
+      <div class="spotlight-header">
+        <div>
+          <h2>🔥 Temporal Variation in Complexity</h2>
+          <p class="sub">Red = growth in complexity · Green = reduction / refactor recovery</p>
+        </div>
+        <span class="badge-hot">Key volatility signal</span>
+      </div>
+
+      <div class="imgwrap large">
+        <img class="zoom chart-img" src="data:image/png;base64,{{ temporal_change_b64 }}" alt="Temporal Variation in Complexity">
+      </div>
+    </section>
+    {% endif %}
+
+  </div>
+
+  <!-- =================================== RECENT PROJECTS =================================== -->
+  <div class="projects">
+  <div class="projects-header">
+    <div>
+      <h2>📁 Recent Projects Analysed</h2>
+      <div class="projects-sub">
+        Showing latest {{ tiles|length }} uploads · Click a tile to open its complexity dashboard
+      </div>
+    </div>
+
+    <!-- 右上角“更多项目”按钮 -->
+    <a href="{% url 'projects_view' %}" class="projects-more-link">
+      View all projects →
+    </a>
+  </div>
+
+  <div class="grid-files">
+    {% for t in tiles %}
+      {% if t.name %}
+        <a
+          href="/charts/?include={{ t.name|urlencode }}"
+          class="card-file"
+          title="{{ t.name }}">
+          {{ t.shortname }}
+        </a>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>
+
+
+
+  <div class="footer">© {% now "Y" %} Complexity Monitor Dashboard</div>
+</div>
+
+
+<!-- =================================== Modal Zoom + Lazy fade-in =================================== -->
+<div class="modal" id="img-modal" onclick="closeModal()">
+  <div class="modal-close">ESC / Click to Exit</div>
+  <img id="modal-img">
+</div>
+
+<script>
+const modal = document.getElementById("img-modal");
+const mImg  = document.getElementById("modal-img");
+
+// 点击放大
+document.addEventListener("click", e => {
+  if (e.target.classList.contains("zoom")) {
+    mImg.src = e.target.src;
+    modal.style.display = "flex";
+  }
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") modal.style.display = "none";
+});
+function closeModal(){ modal.style.display = "none"; }
+
+// ================= 动态加载效果 =================
+document.addEventListener("DOMContentLoaded", function(){
+  const imgs = document.querySelectorAll(".chart-img");
+  imgs.forEach(img => {
+    const wrapper = img.closest(".imgwrap");
+    if (!wrapper) return;
+    // 初始 skeleton 状态
+    wrapper.classList.add("chart-loading");
+
+    const onLoad = () => {
+      wrapper.classList.remove("chart-loading");
+      img.classList.add("img-loaded");
+    };
+
+    if (img.complete) {
+      // 已经被缓存的图片
+      onLoad();
+    } else {
+      img.addEventListener("load", onLoad, { once:true });
+      img.addEventListener("error", () => wrapper.classList.remove("chart-loading"), { once:true });
+    }
+  });
+});
+</script>
+
+</body>
+</html>

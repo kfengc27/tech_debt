@@ -1,0 +1,187 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Project Comparison — Complexity Monitor</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<style>
+/* ============ THEME ============ */
+body{
+    background:#eef1f4;
+    margin:0;
+    font-family:system-ui,Arial;
+}
+.page{
+    max-width:1450px;
+    margin:auto;
+    padding:28px 24px 40px;
+}
+h1{margin:0;font-size:26px;font-weight:700;}
+.sub{margin-top:4px;color:#6f6f6f;font-size:13px;}
+
+.header{
+    background:#fff;padding:20px;border-radius:16px;
+    box-shadow:0 6px 18px rgba(0,0,0,.05);
+    border:1px solid #e4e6eb;margin-bottom:30px;
+}
+
+.back-btn{
+    padding:7px 16px;border-radius:999px;
+    background:#4157ff;color:#fff;font-size:13px;
+    text-decoration:none;transition:.25s;
+}
+.back-btn:hover{background:#2e41d8;transform:translateY(-1px);}
+
+/* Panel Layout */
+.comparison-layout{
+    display:flex;
+    gap:22px;
+    margin-top:14px;
+}
+.panel{
+    background:#fff;
+    padding:22px;
+    border-radius:16px;
+    box-shadow:0 6px 18px rgba(0,0,0,.05);
+    border:1px solid #e4e6eb;
+    flex:1;
+}
+
+/* Left selector panel */
+.file-list{
+    max-height:350px;
+    overflow-y:auto;
+    border:1px solid #dadde2;
+    border-radius:10px;
+    padding:10px;
+    margin-top:10px;
+    background:#fafbfd;
+}
+.file-item{
+    display:flex;gap:10px;
+    font-size:14px;margin-bottom:6px;
+    align-items:center;
+}
+.file-item input{
+    transform:scale(1.1);
+}
+.file-name{
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+
+/* Comparison Button */
+.compare-btn{
+    margin-top:16px;width:100%;
+    background:#111;
+    color:white;font-size:14px;
+    border:none;padding:10px;
+    border-radius:10px;
+    font-weight:600;
+    cursor:pointer;transition:.28s;
+}
+.compare-btn:hover{background:#2a2a2a;transform:scale(1.03);}
+
+/* Chart Panel */
+.chart-output{
+    text-align:center;
+    margin-top:14px;
+}
+.chart-output img{
+    width:92%;
+    max-height:500px;
+    border-radius:12px;
+    border:1px solid #d6d9df;
+    box-shadow:0 8px 30px rgba(0,0,0,.06);
+}
+
+/* Mobile responsive */
+@media(max-width:1000px){
+  .comparison-layout{flex-direction:column;}
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+<!-- Header -->
+<div class="header">
+  <h1>📊 Project Comparison</h1>
+  <p class="sub">Compare multiple projects across complexity metrics & evolution patterns</p>
+  <a href="/" class="back-btn" style="background:#111; padding:7px 18px;">🏠 Back to Dashboard</a>
+    <a href="/charts/?include={{ selected_files.0 }}" class="back-btn" 
+       >
+       ← Back to Single Project
+    </a>
+</div>
+
+
+
+<!-- ================== Comparison Layout ================== -->
+<div class="comparison-layout">
+
+  <!-- LEFT panel -->
+  <div class="panel" style="max-width:360px;">
+      <h2 style="margin:0 0 10px;font-size:18px;">Select Projects</h2>
+      <p style="color:#666;font-size:12px;margin-bottom:6px;">Choose ≥2 CSV files to compare</p>
+
+      <form method="get" action="{% url 'compare_view' %}">
+
+        <!-- Comparison Mode -->
+        <label style="font-size:13px;color:#333;">Comparison metric</label>
+        <select name="metric" style="width:100%;padding:6px 8px;margin-top:6px;border-radius:8px;border:1px solid #ccc;font-size:13px;">
+            <option value="envelope"     {% if chart_type == 'envelope' %}selected{% endif %}>Complexity Envelope Segments</option>
+            <option value="timeline"     {% if chart_type == 'timeline' %}selected{% endif %}>Complexity Timeline</option>
+            <option value="accumulative" {% if chart_type == 'accumulative' %}selected{% endif %}>Accumulative Complexity Growth</option>
+            <option value="temporal"     {% if chart_type == 'temporal' %}selected{% endif %}>Temporal Variation in Complexity</option>
+        </select>
+
+
+        <!-- File Multi-select list -->
+        <div class="file-list">
+        {% for name in all_files %}
+           <label class="file-item">
+               <input type="checkbox" name="files" value="{{ name }}" {% if name in selected_files %}checked{% endif %}>
+               <span class="file-name">{{ name }}</span>
+           </label>
+        {% endfor %}
+        </div>
+
+        <button type="submit" class="compare-btn">🔥 Compare Selected Projects</button>
+
+        {% if errors %}
+           <div style="margin-top:10px;color:#c62828;font-size:13px;">
+             {% for e in errors %}<b>{{ e.name }}:</b> {{ e.error }}<br>{% endfor %}
+           </div>
+        {% endif %}
+      </form>
+  </div>
+
+
+
+  <!-- RIGHT Result Panel -->
+  <div class="panel">
+
+    <h2 style="margin-top:0;font-size:18px;">
+      Result Plot
+      {% if comparison_b64 %} <span style="font-size:12px;color:#666;">({{ selected_files|length }} projects)</span> {% endif %}
+    </h2>
+
+    {% if comparison_b64 %}
+    <div class="chart-output">
+        <img src="data:image/png;base64,{{ comparison_b64 }}">
+    </div>
+    {% else %}
+    <p style="text-align:center;color:#777;margin-top:30px;">
+        Select projects and click <b>Compare</b> to generate comparison chart.
+    </p>
+    {% endif %}
+  </div>
+
+</div>
+
+</div>
+</body>
+</html>

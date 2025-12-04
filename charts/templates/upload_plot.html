@@ -1,0 +1,214 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Complexity Monitor Demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+<style>
+/* ==== THEME ==== */
+:root{
+  --bg:#f2f4f8;
+  --card:#ffffff;
+  --border:#e2e5ec;
+  --text:#111;
+  --sub:#667085;
+  --primary:#4f46e5;
+  --primary-soft:#eef2ff;
+  --green:#16a34a;
+  --radius:18px;
+  --shadow:0 12px 30px rgba(0,0,0,.06);
+}
+
+body{
+  margin:0;
+  background:var(--bg);
+  font-family:-apple-system,system-ui,Roboto,Arial;
+  color:var(--text);
+}
+
+.container{
+  max-width:950px;
+  margin:auto;
+  padding:40px 20px 70px;
+  text-align:center;
+}
+
+/* HEADER */
+h1{
+  font-size:32px;
+  font-weight:700;
+  margin-bottom:8px;
+}
+.sub{
+  margin-top:3px;
+  font-size:14.5px;
+  color:var(--sub);
+}
+
+/* CARD */
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:28px;
+  margin-top:26px;
+  border:1px solid var(--border);
+  box-shadow:var(--shadow);
+  text-align:left;
+}
+
+/* FILE INPUT */
+input[type=file]{
+  padding:12px;
+  width:100%;
+  border-radius:10px;
+  border:1px solid var(--border);
+  margin:14px 0;
+}
+
+/* BUTTONS */
+button, .btn{
+  background:var(--primary);
+  color:white;
+  border:none;
+  font-size:15px;
+  font-weight:600;
+  padding:12px 20px;
+  border-radius:10px;
+  cursor:pointer;
+  transition:.25s;
+  display:inline-block;
+}
+button:hover, .btn:hover{
+  transform:translateY(-2px);
+  opacity:0.92;
+}
+
+/* Green generate button */
+.btn-generate{
+  background:var(--green);
+  margin-top:16px;
+}
+
+/* NEW: secondary button for existing projects */
+.btn-secondary{
+  background:var(--primary-soft);
+  color:var(--primary);
+  border:1px solid var(--primary);
+  margin-left:10px;
+}
+
+/* GitHub input */
+.repo-input{
+  padding:12px 14px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  width:100%;
+  margin-top:10px;
+  background:white;
+}
+
+/* CSV Preview Table */
+.table-wrap{
+  margin-top:14px;
+  overflow:auto;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:#fff;
+}
+
+/* PROJECT NAME BADGE */
+.project-tag{
+  background:#e8fff1;
+  border:1px solid #67d48d;
+  padding:12px 14px;
+  border-radius:10px;
+  font-size:15px;
+  margin-top:18px;
+}
+.project-tag b{ color:#087532; }
+.project-tag small{ display:block;color:#444;margin-top:4px;font-size:12.8px; }
+
+footer{
+  margin-top:50px;
+  color:var(--sub);
+  font-size:13px;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <h1>📊 Complexity Monitor Demo</h1>
+  <p class="sub">Upload your complexity dataset → view technical debt growth in seconds.</p>
+
+  <!-- UPLOAD CSV -->
+  <div class="card">
+    <h2>Upload CSV file</h2>
+    <p class="sub">Supports <b>.csv</b>, raw complexity logs, commit histories.</p>
+
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ form.file }}
+
+      <!-- 上传按钮 + 跳转现有项目按钮 -->
+      <div style="margin-top:8px; display:flex; flex-wrap:wrap; gap:10px;">
+        <button type="submit" name="action" value="upload_csv">
+          Upload File
+        </button>
+
+        <!-- 🔥 按钮：直接去现有项目（charts / 最近 uploads） -->
+        <a href="{% url 'projects_view' %}" class="btn btn-secondary">
+        📁 View existing projects
+      </a>  
+      </div>
+    </form>
+
+    {% if saved_name %}
+    <!-- Show project name once uploaded -->
+    <div class="project-tag">
+      <b>📁 Project:</b>
+      {{ saved_name }}
+      <small>full filename → {{ saved_name }}</small>
+    </div>
+    {% endif %}
+
+    {% if preview_html %}
+    <h3 style="margin-top:22px;">Preview (Top 10 Rows)</h3>
+    <div class="table-wrap">{{ preview_html|safe }}</div>
+
+    <a class="btn btn-generate" href="{% url 'chart_view' %}?include={{ saved_name|urlencode }}">
+      📈 Generate Complexity Charts
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- GITHUB IMPORT -->
+  <div class="card">
+    <h2>Or fetch via GitHub repository</h2>
+    <p class="sub">Paste <code>owner/repo</code> or full GitHub URL</p>
+
+    <form method="post">
+      {% csrf_token %}
+      {{ form.repo }}
+      <input type="text" name="file_path" placeholder="https://github.com/torvalds/linux" class="repo-input">
+
+      <button type="submit" name="action" value="fetch_repo" style="margin-top:14px;">
+        🔍 Fetch Repository
+      </button>
+    </form>
+
+    {% if error %}
+    <p style="color:#c62828;margin-top:10px;font-weight:600;">⚠ {{ error }}</p>
+    {% endif %}
+  </div>
+
+  <footer>© {% now "Y" %} Complexity Monitor — Technical Debt Analytics</footer>
+
+</div>
+</body>
+</html>

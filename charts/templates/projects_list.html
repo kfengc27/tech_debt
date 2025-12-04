@@ -1,0 +1,203 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Existing Projects — Complexity Monitor</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+:root{
+  --bg:#f2f4f8;
+  --card:#ffffff;
+  --border:#e2e5ec;
+  --text:#111;
+  --sub:#667085;
+  --primary:#4f46e5;
+  --radius:18px;
+  --shadow:0 12px 30px rgba(0,0,0,.06);
+}
+
+body{
+  margin:0;
+  background:var(--bg);
+  font-family:-apple-system,system-ui,Roboto,Arial;
+  color:var(--text);
+}
+
+.page{
+  max-width:1100px;
+  margin:auto;
+  padding:32px 20px 60px;
+}
+
+/* Header */
+.header{
+  background:#fff;
+  border-radius:16px;
+  padding:20px 22px;
+  box-shadow:var(--shadow);
+  border:1px solid var(--border);
+  margin-bottom:24px;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+}
+h1{margin:0;font-size:24px;font-weight:700;}
+.sub{margin-top:4px;font-size:13px;color:var(--sub);}
+
+.badge-count{
+  background:#eef2ff;
+  color:#3730a3;
+  border-radius:999px;
+  padding:4px 10px;
+  font-size:12px;
+  font-weight:600;
+}
+
+/* Buttons */
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:8px 16px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:600;
+  text-decoration:none;
+  border:none;
+  cursor:pointer;
+  transition:.2s;
+}
+.btn-primary{
+  background:var(--primary);
+  color:white;
+}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px);}
+.btn-ghost{
+  background:#f3f4f6;
+  color:#111827;
+}
+.btn-ghost:hover{background:#e5e7eb;transform:translateY(-1px);}
+
+/* Project list */
+.card{
+  background:#fff;
+  border-radius:16px;
+  padding:18px 20px 22px;
+  border:1px solid var(--border);
+  box-shadow:var(--shadow);
+}
+
+.projects-grid{
+  margin-top:12px;
+  display:grid;
+  gap:14px;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+}
+
+.project-item{
+  border-radius:14px;
+  padding:12px 14px;
+  background:linear-gradient(135deg,#eef2ff,#e0f2fe);
+  border:1px solid #fff;
+  box-shadow:0 8px 18px rgba(15,23,42,0.08);
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+.project-title{
+  font-size:14px;
+  font-weight:700;
+}
+.project-sub{
+  font-size:12px;
+  color:#374151;
+}
+.project-meta{
+  font-size:11px;
+  color:#6b7280;
+}
+
+/* Link area */
+.project-link{
+  margin-top:8px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+}
+.project-link a{
+  font-size:12px;
+  color:#0f172a;
+  text-decoration:none;
+  border-radius:999px;
+  padding:4px 10px;
+  background:rgba(15,23,42,0.08);
+}
+.project-link a:hover{
+  background:rgba(15,23,42,0.14);
+}
+
+/* Empty state */
+.empty{
+  text-align:center;
+  padding:40px 10px;
+  color:#6b7280;
+  font-size:14px;
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <h1>📁 Existing Projects</h1>
+      <p class="sub">
+        All uploaded complexity datasets. Click a project to open its complexity dashboard.
+      </p>
+      <span class="badge-count">{{ total }} projects</span>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <a href="{% url 'upload_csv_view' %}" class="btn btn-primary">🏠 Back to Home</a>
+    
+    </div>
+  </div>
+
+  <!-- Project List -->
+  <div class="card">
+    {% if projects %}
+      <div class="projects-grid">
+        {% for p in projects %}
+        <div class="project-item">
+          <div class="project-title">{{ p.shortname }}</div>
+          <div class="project-sub">{{ p.name }}</div>
+          <div class="project-meta">
+            {{ p.mtime|date:"Y-m-d H:i" }} · {{ p.size_kb }} KB
+          </div>
+
+          <div class="project-link">
+            <a href="{% url 'chart_view' %}?include={{ p.name|urlencode }}">
+              View complexity dashboard →
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty">
+        No projects found yet. Try uploading a CSV file from the home page first.
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+
+</body>
+</html>
