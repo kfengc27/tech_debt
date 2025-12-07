@@ -20,7 +20,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-(4f6c+_^1tf*g$@$s!%*(=!^^5n!_fg8+_0!+_rz*%1-mn+#o='
+# SECRET_KEY = 'django-insecure-(4f6c+_^1tf*g$@$s!%*(=!^^5n!_fg8+_0!+_rz*%1-mn+#o='
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-secret-key-change-this")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -49,6 +50,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # 🔥 add this
 ]
 
 ROOT_URLCONF = 'tech_debt.urls'
