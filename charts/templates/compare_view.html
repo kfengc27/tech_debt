@@ -96,6 +96,60 @@ h1{margin:0;font-size:26px;font-weight:700;}
     box-shadow:0 8px 30px rgba(0,0,0,.06);
 }
 
+/* ---- Normalize toggle ---- */
+.field-group{
+    margin-top:10px;
+    margin-bottom:6px;
+}
+.field-label{
+    font-size:13px;
+    font-weight:600;
+    color:#555;
+}
+
+/* toggle 开关 */
+.toggle{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    cursor:pointer;
+    user-select:none;
+    font-size:12px;
+}
+.toggle input{
+    display:none;
+}
+.toggle-slider{
+    width:34px;
+    height:18px;
+    border-radius:999px;
+    background:#d0d4dc;
+    position:relative;
+    transition:background .2s ease;
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.05);
+}
+.toggle-slider::before{
+    content:"";
+    position:absolute;
+    top:2px;
+    left:2px;
+    width:14px;
+    height:14px;
+    border-radius:50%;
+    background:#fff;
+    box-shadow:0 2px 6px rgba(0,0,0,.15);
+    transition:transform .2s ease;
+}
+.toggle input:checked + .toggle-slider{
+    background:#12a150;
+}
+.toggle input:checked + .toggle-slider::before{
+    transform:translateX(16px);
+}
+.toggle-text{
+    color:#6f6f6f;
+}
+
 /* Mobile responsive */
 @media(max-width:1000px){
   .comparison-layout{flex-direction:column;}
@@ -111,10 +165,9 @@ h1{margin:0;font-size:26px;font-weight:700;}
   <h1>📊 Project Comparison</h1>
   <p class="sub">Compare multiple projects across complexity metrics & evolution patterns</p>
   <a href="/" class="back-btn" style="background:#111; padding:7px 18px;">🏠 Back to Dashboard</a>
-    <a href="/charts/?include={{ selected_files.0 }}" class="back-btn" 
-       >
+  <a href="/charts/?include={{ selected_files.0 }}" class="back-btn">
        ← Back to Single Project
-    </a>
+  </a>
 </div>
 
 
@@ -130,14 +183,36 @@ h1{margin:0;font-size:26px;font-weight:700;}
       <form method="get" action="{% url 'compare_view' %}">
 
         <!-- Comparison Mode -->
-        <label style="font-size:13px;color:#333;">Comparison metric</label>
-        <select name="metric" style="width:100%;padding:6px 8px;margin-top:6px;border-radius:8px;border:1px solid #ccc;font-size:13px;">
-            <option value="envelope"     {% if chart_type == 'envelope' %}selected{% endif %}>Complexity Envelope Segments</option>
-            <option value="timeline"     {% if chart_type == 'timeline' %}selected{% endif %}>Complexity Timeline</option>
-            <option value="accumulative" {% if chart_type == 'accumulative' %}selected{% endif %}>Accumulative Complexity Growth</option>
-            <option value="temporal"     {% if chart_type == 'temporal' %}selected{% endif %}>Temporal Variation in Complexity</option>
-        </select>
+        <div class="field-group">
+          <label class="field-label">Comparison metric</label>
+          <select name="metric" style="width:100%;padding:6px 8px;margin-top:6px;border-radius:8px;border:1px solid #ccc;font-size:13px;">
+              <option value="envelope"     {% if chart_type == 'envelope' %}selected{% endif %}>Complexity Envelope Segments</option>
+              <option value="timeline"     {% if chart_type == 'timeline' %}selected{% endif %}>Complexity Timeline</option>
+              <option value="temporal"     {% if chart_type == 'temporal' %}selected{% endif %}>Temporal Variation in Complexity</option>
+          </select>
+        </div>
 
+        <!-- 🔥 New: Normalize toggle -->
+        <div class="field-group" style="display:flex;align-items:center;justify-content:space-between;">
+          <span class="field-label" style="font-size:13px;">Y axis</span>
+          <label class="toggle">
+            <span class="toggle-text">Normalize 0–1</span>
+            <input type="checkbox" name="normalize" value="1"
+                   {% if normalize %}checked{% endif %}>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+                <!-- 🔥 New: Align start toggle -->
+        <div class="field-group" style="display:flex;align-items:center;justify-content:space-between;">
+          <span class="field-label" style="font-size:13px;">Time axis</span>
+          <label class="toggle">
+            <span class="toggle-text">Align project start (t = 0)</span>
+            <input type="checkbox" name="align_start" value="1"
+                   {% if align_start %}checked{% endif %}>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
 
         <!-- File Multi-select list -->
         <div class="file-list">

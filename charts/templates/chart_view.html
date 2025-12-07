@@ -7,6 +7,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 
 <style>
+  .range-tabs {
+  display:flex; gap:6px; align-items:center;
+}
+
+.range-btn{
+  padding:4px 10px;
+  border-radius:8px;
+  font-size:12px;
+  border:1px solid #d0d5dd;
+  text-decoration:none;
+  color:#344054;
+  transition:.2s;
+}
+
+.range-btn:hover{
+  background:#e6e9f0;
+}
+
+.range-btn.active{
+  background:#111827;
+  color:white;
+  border-color:#111827;
+  font-weight:600;
+}
+
 .projects-header{
   display:flex;
   justify-content:space-between;
@@ -213,7 +238,7 @@ h1{
   display:block;
   cursor:zoom-in;
   opacity:0;
-  transition:opacity .4s ease;
+  transition:opacity .4s ease, transform .2s ease;
 }
 .chart-img.img-loaded{
   opacity:1;
@@ -273,10 +298,16 @@ h1{
   font-weight:600;
 }
 .imgwrap.large{
-  margin-top:10px;
+   width:100%;
+  margin-top:12px;
+  border-radius:18px;
+  padding:0;
 }
 .imgwrap.large img{
-  max-height:480px;
+  width:100%;
+  height:auto;
+  object-fit:contain;
+  max-height:600px;     /* ← 取消高度限制 */
 }
 
 /* ================================= RECENT PROJECTS GRID ================================= */
@@ -325,6 +356,10 @@ h1{
   padding:8px;
   transition:.25s;
   cursor:pointer;
+
+  /* 新增：作为链接用 */
+  text-decoration:none;
+  color:#111;
 }
 .card-file:hover{
   transform:translateY(-3px) scale(1.02);
@@ -372,28 +407,101 @@ h1{
   }
 }
 
-.card-file{
-  height:110px;
-  border-radius:14px;
-  font-size:14px;
-  font-weight:600;
-  background:linear-gradient(145deg,#dee4ff,#cce5fd);
-  border:1px solid #ffffff50;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-  padding:8px;
-  transition:.25s;
-  cursor:pointer;
-
-  /* 新增：作为链接用 */
-  text-decoration:none;
-  color:#111;
+/* ===== Raw data card ===== */
+.raw-data-card{
+  margin-top:18px;
+  background:#fff;
+  border-radius:16px;
+  border:1px solid #e4e6eb;
+  box-shadow:0 6px 18px rgba(0,0,0,.05);
+  padding:16px 18px 14px;
 }
-.card-file:hover{
-  transform:translateY(-3px) scale(1.02);
-  box-shadow:0 15px 25px rgba(0,0,0,.08);
+
+.raw-data-card .card-header{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  margin-bottom:10px;
+}
+
+.raw-table-title{
+  margin:4px 0 6px;
+  font-size:12px;
+  font-weight:600;
+  color:#555;
+  text-align:left;
+}
+
+
+.raw-data-card .card-title{
+  margin:0;
+  font-size:16px;
+  font-weight:600;
+}
+
+.raw-data-card .card-subtitle{
+  margin:0;
+  font-size:12px;
+  color:#777;
+}
+
+/* raw chart */
+.raw-chart-wrapper{
+  margin-bottom:10px;
+  text-align:center;
+}
+.raw-chart-img{
+  max-width:100%;
+  border-radius:10px;
+  border:1px solid #dde1e8;
+}
+
+/* 点击提示 */
+.raw-chart-hint{
+  margin-top:4px;
+  font-size:11px;
+  color:#888;
+  text-align:right;
+  font-style:italic;
+}
+
+/* 表格区域滚动 */
+.raw-table-wrapper{
+  max-height:260px;
+  overflow:auto;
+  border-radius:10px;
+  border:1px solid #dde1e8;
+  background:#fafbfd;
+}
+
+/* 表格样式 */
+.raw-table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:12px;
+  font-family:SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+}
+.raw-table thead{
+  position:sticky;
+  top:0;
+  background:#f1f3f8;
+  z-index:1;
+}
+.raw-table th,
+.raw-table td{
+  padding:5px 8px;
+  border-bottom:1px solid #e2e4ec;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  overflow:hidden;
+}
+.raw-table th{
+  text-align:left;
+  font-weight:600;
+  color:#555;
+}
+.raw-table tbody tr:nth-child(even){
+  background:#f9fafc;
 }
 
 </style>
@@ -488,6 +596,60 @@ h1{
 
 </div>
 
+    <!-- ================================= TEMPORAL VARIATION ================================= -->
+    {% if temporal_change_b64 %}
+<section class="spotlight">
+  <div class="spotlight-header">
+    <div>
+      <h2>🔥 Tech Debt Over Time</h2>
+      <p class="sub">Red = growth in complexity · Green = refactor reduction | Adjustable timeframe</p>
+    </div>
+
+    <!-- 📌 时间范围按钮 -->
+<div class="range-tabs">
+
+  <a href="?include={{ filename }}&range=3M"
+     class="range-btn {% if selected_range == '3M' %}active{% endif %}">
+    3M
+  </a>
+
+  <a href="?include={{ filename }}&range=6M"
+     class="range-btn {% if selected_range == '6M' %}active{% endif %}">
+    6M
+  </a>
+
+  <a href="?include={{ filename }}&range=1Y"
+     class="range-btn {% if selected_range == '1Y' %}active{% endif %}">
+    1Y
+  </a>
+
+  <a href="?include={{ filename }}&range=3Y"
+     class="range-btn {% if selected_range == '3Y' %}active{% endif %}">
+    3Y
+  </a>
+
+  <a href="?include={{ filename }}&range=5Y"
+     class="range-btn {% if selected_range == '5Y' %}active{% endif %}">
+    5Y
+  </a>
+
+  <a href="?include={{ filename }}&range=ALL"
+     class="range-btn {% if selected_range == 'ALL' or not selected_range %}active{% endif %}">
+    ALL
+  </a>
+
+</div>
+
+
+
+  </div>
+
+  <div class="imgwrap large">
+    <img class="zoom chart-img" src="data:image/png;base64,{{ temporal_change_b64 }}" alt="Temporal Variation in Complexity">
+  </div>
+</section>
+
+    {% endif %}
 
   <!-- =================================== MAIN CHART PANEL =================================== -->
   <div class="charts-container">
@@ -515,15 +677,15 @@ h1{
       {% if time_complexity_b64 %}
       <div class="chart-card small">
         <h3>
-          📈 Complexity Timeline
-          <span class="chart-tag">Time-series</span>
+          📈 Complexity Smoothed
+          <span class="chart-tag">Smoothed</span>
         </h3>
         <div class="imgwrap">
           <img class="zoom chart-img" src="data:image/png;base64,{{ time_complexity_b64 }}" alt="Complexity Timeline">
         </div>
       </div>
       {% endif %}
-
+<!-- 
       {% if acc_chart_b64 %}
       <div class="chart-card small">
         <h3>
@@ -534,27 +696,62 @@ h1{
           <img class="zoom chart-img" src="data:image/png;base64,{{ acc_chart_b64 }}" alt="Accumulative Complexity">
         </div>
       </div>
-      {% endif %}
+      {% endif %} -->
 
     </section>
 
+<!-- 🔥 Raw Data box: 图 + 表 -->
+<div class="raw-data-card">
+  <div class="card-header">
+    <h2 class="card-title">Raw Data – Complexity per Record</h2>
+    <p class="card-subtitle">
+      Preview of raw data from <strong>{{ filename }}</strong>
+      (first 100 rows)
+    </p>
+  </div>
 
-    <!-- ================================= TEMPORAL VARIATION ================================= -->
-    {% if temporal_change_b64 %}
-    <section class="spotlight">
-      <div class="spotlight-header">
-        <div>
-          <h2>🔥 Temporal Variation in Complexity</h2>
-          <p class="sub">Red = growth in complexity · Green = reduction / refactor recovery</p>
-        </div>
-        <span class="badge-hot">Key volatility signal</span>
-      </div>
+  {% if raw_plot_b64 %}
+  <div class="raw-chart-wrapper">
+    <!-- ✅ 这里加上 chart-img + zoom，支持放大 & skeleton -->
+    <img
+      src="data:image/png;base64,{{ raw_plot_b64 }}"
+      class="raw-chart-img chart-img zoom"
+      alt="Raw Complexity Data (Per Record)"
+    />
+    <p class="raw-chart-hint">Click chart to enlarge</p>
+  </div>
+  {% endif %}
 
-      <div class="imgwrap large">
-        <img class="zoom chart-img" src="data:image/png;base64,{{ temporal_change_b64 }}" alt="Temporal Variation in Complexity">
-      </div>
-    </section>
-    {% endif %}
+  {% if raw_preview %}
+   <p class="raw-table-title">Top 100 raw data rows</p>
+  <div class="raw-table-wrapper">
+    <table class="raw-table">
+      <thead>
+        <tr>
+          {% for col in raw_preview.0.keys %}
+            <th>{{ col }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in raw_preview %}
+        <tr>
+          {% for val in row.values %}
+            <td>{{ val }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p style="font-size:13px;color:#777;margin:6px 0 0;">
+      No raw data available for preview.
+    </p>
+  {% endif %}
+</div>
+
+
 
   </div>
 
@@ -620,7 +817,7 @@ function closeModal(){ modal.style.display = "none"; }
 document.addEventListener("DOMContentLoaded", function(){
   const imgs = document.querySelectorAll(".chart-img");
   imgs.forEach(img => {
-    const wrapper = img.closest(".imgwrap");
+    const wrapper = img.closest(".imgwrap") || img.closest(".raw-chart-wrapper");
     if (!wrapper) return;
     // 初始 skeleton 状态
     wrapper.classList.add("chart-loading");

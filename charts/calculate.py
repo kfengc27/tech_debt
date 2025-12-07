@@ -174,7 +174,7 @@ def split_by_metric(points, drop_thre=0.01, w=2, min_len=8,
     points: list of (x, y) sorted by x
     metric: 'adjr2' 或 'mse'
     """
-    print("开始用 Split By Metric 函数")
+
     # 你已有的两个指标函数（请确保这两个函数已定义在同一作用域中）
     # compute_adjR2(n, sx, sy, sxx, sxy, syy, p, eps=1e-12) -> float
     # compute_MSE(n, sx, sy, sxx, sxy, syy, p, eps=1e-12)   -> float
@@ -194,8 +194,7 @@ def split_by_metric(points, drop_thre=0.01, w=2, min_len=8,
     p = k + 1
 
     segments = []
-    print("Segments 是")
-    print(segments)
+
     breakpoints = []
 
     def reset_state():
@@ -218,14 +217,14 @@ def split_by_metric(points, drop_thre=0.01, w=2, min_len=8,
         sxx += x * x
         syy += y * y
         sxy += x * y
-        print("sxy", sxy)
+
         # 起始长度不足则跳过
         if n < max(min_len, p + 1):
             continue
-        print("长度不足")
+
         # 当前区段的指标
         cur_metric = metric_fn(n, sx, sy, sxx, sxy, syy, p)
-        print("指标", cur_metric)
+ 
         # 检查是否“变坏”
         bad = False
         if last_metric is not None:
@@ -253,7 +252,7 @@ def split_by_metric(points, drop_thre=0.01, w=2, min_len=8,
         else:
             bad_streak = 0
 
-        print("更新")
+
         # 更新“上一时刻的指标”
         last_metric = cur_metric
         metric_at_prev = cur_metric  # 记录最近一次计算值
@@ -290,7 +289,7 @@ def split_by_metric(points, drop_thre=0.01, w=2, min_len=8,
                 metric_at_prev = None
 
     # 收尾段
-    print("收尾")
+
     segments.append({
         "start": start,
         "end": len(points) - 1,
@@ -569,9 +568,7 @@ def plot_segments(df: pd.DataFrame, date_col: str, value_col: str):
     y_num = df[value_col].to_numpy(dtype=float)
 
     points = np.column_stack([x_num, y_num])
-    print("points (numeric time, head):", points[:5])
 
-    print("executing split_by_metric")
     segs, cuts = split_by_metric(
         points,
         drop_thre=0.001,
@@ -582,9 +579,9 @@ def plot_segments(df: pd.DataFrame, date_col: str, value_col: str):
         k=1,
         metric='mse'
     )
-    print("segments:", segs)
+
     seg_list = extract_segments(segs)
-    print("seg_list:", seg_list)
+
 
     # ---- 画图 ----
     fig, ax = plt.subplots(figsize=(14, 8))
@@ -617,7 +614,7 @@ def plot_segments(df: pd.DataFrame, date_col: str, value_col: str):
         if g.empty:
             continue
 
-        print(f"Segment {i}: [{s}, {e}) len={len(g)}")
+
 
         # segment 点（稍大一点，便于分段观察）
         ax.scatter(
@@ -635,7 +632,7 @@ def plot_segments(df: pd.DataFrame, date_col: str, value_col: str):
 
             # 2) 一阶线性拟合
             m, b = np.polyfit(xd, yd, 1)
-            print("  slope:", m, "intercept:", b)
+
 
             # 3) 该段的拟合线 x 范围
             xfit = np.linspace(xd.min(), xd.max(), 200)
@@ -681,7 +678,7 @@ def plot_segments(df: pd.DataFrame, date_col: str, value_col: str):
     plt.close(fig)
     buf.seek(0)
     b64 = base64.b64encode(buf.read()).decode("ascii")
-    print("Segments b64 ready.")
+
     return b64
 
 
@@ -769,57 +766,241 @@ def plot_weekly_change(
     return img_b64
 
 
+# Todo 
+# def plot_temporal_variation_change(
+#     df,
+#     date_col="x_mid",
+#     value_col="y_envelope",
+#     freq="W",
+#     title="Temporal Variation in Complexity (Δ Change)"
+# ):
+#     """ Show red if complexity increases, green if decreases """
+#     if df is None or len(df)==0:
+#         return None
 
+#     data = df[[date_col, value_col]].copy().reset_index(drop=True)
+
+#     data[date_col] = pd.to_datetime(data[date_col], errors="coerce")
+#     data = data.dropna(subset=[date_col, value_col])
+    
+#     data = data.sort_values(date_col)
+
+#     # 🔥 Weekly mean — 可改 median/sum
+#     weekly = data.set_index(date_col)[value_col].resample(freq).mean()
+#     weekly = weekly.dropna() 
+
+#     change = weekly.diff()  # --> 差分曲线 Δy
+
+#     if change.empty or change.isna().all():
+#         return None
+
+#     # 🎨 红=上升（变复杂），绿=下降（变简单）
+#     colors = ["red" if x > 0 else "green" for x in change]
+
+#     # === 绘图 ===
+#     fig, ax = plt.subplots(figsize=(16,8))
+
+#     ax.bar(change.index, change.values, color=colors, width=6)
+
+#     ax.axhline(0, color="black", linewidth=1.2)   # 基准线
+#     ax.set_title(title)
+#     ax.set_ylabel("Δ Complexity (week over week)")
+#     ax.set_xlabel("Time (Weekly)")
+#     fig.autofmt_xdate(rotation=25)
+#     plt.tight_layout()
+
+#     buf = io.BytesIO()
+#     fig.savefig(buf, format="png", bbox_inches="tight")
+#     buf.seek(0)
+#     img_b64 = base64.b64encode(buf.read()).decode("ascii")
+
+#     plt.close(fig)
+#     buf.close()
+#     return img_b64
 def plot_temporal_variation_change(
     df,
     date_col="x_mid",
     value_col="y_envelope",
     freq="W",
-    title="Temporal Variation in Complexity (Δ Change)"
+    title="Tech Debt Over Time",
+    window=None,   # "3M","6M","1Y","3Y","5Y"... 或 None
 ):
-    """ Show red if complexity increases, green if decreases """
-    if df is None or len(df)==0:
+    """
+    左轴：复杂度变化量 |Δ|（红=变复杂，绿=变简单，所有柱子向上，且视觉更大）
+    右轴：复杂度水平（weekly mean）折线
+    window:
+        None  -> 全部历史
+        "3M"  -> 过去 3 个月
+        "6M"  -> 过去 6 个月
+        "1Y"  -> 过去 1 年
+        "3Y"  -> 过去 3 年
+        "5Y"  -> 过去 5 年
+        以及任意类似格式的 "数字+M/Y"
+    """
+    if df is None or len(df) == 0:
         return None
 
     data = df[[date_col, value_col]].copy().reset_index(drop=True)
 
+    # --- 清洗 & 排序 ---
     data[date_col] = pd.to_datetime(data[date_col], errors="coerce")
     data = data.dropna(subset=[date_col, value_col])
-    
     data = data.sort_values(date_col)
 
-    # 🔥 Weekly mean — 可改 median/sum
-    weekly = data.set_index(date_col)[value_col].resample(freq).mean()
-    weekly = weekly.dropna() 
-
-    change = weekly.diff()  # --> 差分曲线 Δy
-
-    if change.empty or change.isna().all():
+    # 🔥 按周聚合得到“复杂度水平”（全量）
+    weekly_full = (
+        data.set_index(date_col)[value_col]
+        .resample(freq)
+        .mean()
+        .dropna()
+    )
+    if weekly_full.empty or len(weekly_full) < 2:
         return None
 
-    # 🎨 红=上升（变复杂），绿=下降（变简单）
-    colors = ["red" if x > 0 else "green" for x in change]
+    # ===== 通用 window 解析逻辑 =====
+    weekly = weekly_full
+    if window:
+        w = str(window).strip().upper()  # 例如 "3Y" / "5Y" / "6M"
+        last_date = weekly_full.index.max()
+        cutoff = None
 
-    # === 绘图 ===
-    fig, ax = plt.subplots(figsize=(16,8))
+        try:
+            if w.endswith("M"):
+                n_months = int(w[:-1])
+                cutoff = last_date - pd.DateOffset(months=n_months)
+            elif w.endswith("Y"):
+                n_years = int(w[:-1])
+                cutoff = last_date - pd.DateOffset(years=n_years)
+        except ValueError:
+            cutoff = None  # 解析失败就当没填 window
 
-    ax.bar(change.index, change.values, color=colors, width=6)
+        if cutoff is not None:
+            weekly_window = weekly_full[weekly_full.index >= cutoff]
+            # 如果数据太少（比如不足 5 周），就自动 fallback 回全量
+            if len(weekly_window) >= 5:
+                weekly = weekly_window
+            else:
+                weekly = weekly_full  # 回退到 ALL
 
-    ax.axhline(0, color="black", linewidth=1.2)   # 基准线
-    ax.set_title(title)
-    ax.set_ylabel("Δ Complexity (week over week)")
+    # Δ complexity（周对周变化）
+    change = weekly.diff().dropna()
+    if change.empty:
+        return None
+
+    # 高度用绝对值，颜色用正负
+    abs_change = change.abs()
+    colors = ["red" if x > 0 else "green" for x in change.values]
+
+    abs_vals = abs_change.values
+
+    # ====== 用分位数控制 y 轴上限，让大部分柱子「长高」 ======
+    cap = np.percentile(abs_vals, 98)
+    cap = max(cap, np.max(abs_vals) * 0.25, 1e-6)
+
+    # 真正画出来的高度（超过 cap 的直接截断到 cap）
+    bar_heights = np.minimum(abs_vals, cap)
+
+    # ========= 绘图部分 =========
+    fig, ax = plt.subplots(figsize=(24, 16))
+
+    # --- 左轴：变化量柱子（全部向上，放大+加粗）---
+    ax.bar(
+        change.index,
+        bar_heights,
+        color=colors,
+        width=10,
+        alpha=0.9,
+        label="|Δ Tech Debt| (Week over Week)",
+    )
+
+    ax.axhline(0, color="black", linewidth=1, alpha=0.7)
+    ax.set_facecolor("#FFFFFF")
+    ax.grid(axis="y", linestyle="--", alpha=0.25)
+
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+
+    y_lim = cap * 1.15
+    ax.set_ylim(0, y_lim)
+    ax.set_ylabel("|Δ Complexity| (Weekly Change)")
+
+    # --- 对于超过 cap 的极端值，单独用竖线 + 标注表示 ---
+    outlier_mask = abs_vals > cap
+    if outlier_mask.any():
+        for x, real_y, sign in zip(
+            change.index[outlier_mask],
+            change.values[outlier_mask],
+            np.sign(change.values[outlier_mask]),
+        ):
+            ax.vlines(
+                x,
+                0,
+                y_lim,  # 拉到顶
+                color="green" if sign < 0 else "red",
+                linewidth=2.0,
+                alpha=0.9,
+            )
+            ax.annotate(
+                f"{real_y:.0f}",
+                xy=(x, y_lim),
+                xytext=(0, 6),
+                textcoords="offset points",
+                ha="center",
+                va="bottom",
+                fontsize=8,
+                alpha=0.8,
+            )
+
+    # --- 右轴：复杂度水平折线 ---
+    ax2 = ax.twinx()
+
+    aligned_weekly = weekly.loc[change.index]
+    ax2.plot(
+        aligned_weekly.index,
+        aligned_weekly.values,
+        color="#1f77b4",
+        linewidth=1.4,
+        marker="o",
+        markersize=3.0,
+        markerfacecolor="white",
+        markeredgewidth=0.8,
+        alpha=0.92,
+        label="Weekly Complexity Level",
+    )
+    ax2.set_ylabel("Weekly Complexity Level")
+    ax2.set_ylim(0, aligned_weekly.max() * 1.25)
+
+    # --- 时间轴格式 ---
+    ax.xaxis.set_major_locator(mdates.YearLocator())
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
+    plt.setp(ax.get_xticklabels(), rotation=25, ha="right")
+
+    # --- 合并图例 ---
+    handles1, labels1 = ax.get_legend_handles_labels()
+    handles2, labels2 = ax2.get_legend_handles_labels()
+    ax.legend(handles1 + handles2, labels1 + labels2, loc="upper left")
+
+    # 标题 & 轴标签
+    if window:
+        ax.set_title(f"{title} · Range: {window}", fontsize=14, fontweight="bold")
+    else:
+        ax.set_title(title, fontsize=14, fontweight="bold")
+
     ax.set_xlabel("Time (Weekly)")
-    fig.autofmt_xdate(rotation=25)
+
     plt.tight_layout()
 
+    # ========= 输出为 base64 =========
     buf = io.BytesIO()
-    fig.savefig(buf, format="png", bbox_inches="tight")
+    fig.savefig(buf, format="png", bbox_inches="tight", dpi=150)
     buf.seek(0)
     img_b64 = base64.b64encode(buf.read()).decode("ascii")
 
     plt.close(fig)
     buf.close()
     return img_b64
+
+
 
 def plot_accumulative_complexity_multi(
     series_dict,
@@ -835,7 +1016,7 @@ def plot_accumulative_complexity_multi(
     if not series_dict:
         return None
 
-    fig, ax = plt.subplots(figsize=(12, 6), dpi=150)
+    fig, ax = plt.subplots(figsize=(12, 8), dpi=150)
 
     for label, df in series_dict.items():
         if df is None or df.empty:
@@ -892,27 +1073,45 @@ def _prepare_time_series(df, date_col="x_mid", value_col="y_envelope"):
     local[date_col] = pd.to_datetime(local[date_col], errors="coerce")
     local = local.dropna(subset=[date_col, value_col]).sort_values(date_col)
     return local
-
-
 def plot_envelope_multi(
     series_dict,
     date_col: str = "x_mid",
     value_col: str = "y_envelope",
     title: str = "Project Comparison – Complexity Envelope Segments",
+    normalize: bool = False,
+    align_start: bool = False,
 ):
-    """简单对比 envelope 曲线（不画分段，只看整体形状）"""
     if not series_dict:
         return None
 
-    fig, ax = plt.subplots(figsize=(12, 6), dpi=150)
+    fig, ax = plt.subplots(figsize=(12, 8), dpi=220)  # 🔥 更大 + 更清晰
+    # fig.subplots_adjust(left=0.06, right=0.97, top=0.92, bottom=0.09)  # 🔥 去白边，放大画面
+
 
     for label, df in series_dict.items():
         local = _prepare_time_series(df, date_col, value_col)
         if local.empty:
             continue
+
+        y = local[value_col].astype(float)
+
+        if normalize:
+            ymin, ymax = y.min(), y.max()
+            if np.isclose(ymax, ymin):
+                y_plot = np.zeros_like(y, dtype=float)
+            else:
+                y_plot = (y - ymin) / (ymax - ymin)
+        else:
+            y_plot = y
+
+        if align_start:
+            x = np.arange(len(local))
+        else:
+            x = local[date_col]
+
         ax.plot(
-            local[date_col],
-            local[value_col],
+            x,
+            y_plot,
             linewidth=1.8,
             marker="o",
             label=str(label),
@@ -922,9 +1121,18 @@ def plot_envelope_multi(
         plt.close(fig)
         return None
 
-    ax.set_title(title)
-    ax.set_xlabel("Time")
-    ax.set_ylabel("Envelope Complexity")
+    if normalize:
+        ax.set_ylabel("Normalized Envelope Complexity (0–1)")
+    else:
+        ax.set_ylabel("Envelope Complexity")
+
+    if align_start:
+        ax.set_xlabel("Steps since project start")
+        ax.set_title(title + " — Aligned at Start" + ( " [Normalized]" if normalize else "" ))
+    else:
+        ax.set_xlabel("Time")
+        ax.set_title(title)
+
     ax.grid(alpha=0.6)
     ax.legend(title="Project", fontsize=9)
 
@@ -941,19 +1149,21 @@ def plot_timeline_multi(
     value_col: str = "y_envelope",
     title: str = "Project Comparison – Complexity Timeline",
     freq: str = "W",
+    normalize: bool = False,
+    align_start: bool = False,   # ← 新增
 ):
-    """对比时间线平均复杂度（类似你单项目的 timeline，但多条线）"""
     if not series_dict:
         return None
 
-    fig, ax = plt.subplots(figsize=(12, 6), dpi=150)
+    fig, ax = plt.subplots(figsize=(12, 8), dpi=220)  # 🔥 更大 + 更清晰
+    # fig.subplots_adjust(left=0.06, right=0.97, top=0.92, bottom=0.09)  # 🔥 去白边，放大画面
+
 
     for label, df in series_dict.items():
         local = _prepare_time_series(df, date_col, value_col)
         if local.empty:
             continue
 
-        # Weekly mean
         ts = (
             local.set_index(date_col)[value_col]
             .resample(freq)
@@ -965,9 +1175,27 @@ def plot_timeline_multi(
         if ts.empty:
             continue
 
+        y = ts[value_col].astype(float)
+
+        # normalize
+        if normalize:
+            ymin, ymax = y.min(), y.max()
+            if np.isclose(ymax, ymin):
+                y_plot = np.zeros_like(y, dtype=float)
+            else:
+                y_plot = (y - ymin) / (ymax - ymin)
+        else:
+            y_plot = y
+
+        # 🔥 对齐起点：X 改为 0,1,2,...
+        if align_start:
+            x = np.arange(len(ts))
+        else:
+            x = ts[date_col]
+
         ax.plot(
-            ts[date_col],
-            ts[value_col],
+            x,
+            y_plot,
             linewidth=1.8,
             marker="o",
             label=str(label),
@@ -977,9 +1205,18 @@ def plot_timeline_multi(
         plt.close(fig)
         return None
 
-    ax.set_title(title + f" ({freq})")
-    ax.set_xlabel("Time")
-    ax.set_ylabel("Average Complexity")
+    if normalize:
+        ax.set_ylabel("Normalized Complexity (0–1)")
+    else:
+        ax.set_ylabel("Average Complexity")
+
+    if align_start:
+        ax.set_xlabel(f"Periods since project start ({freq})")
+        ax.set_title(title + " — Aligned at Start" + ( " [Normalized]" if normalize else "" ))
+    else:
+        ax.set_xlabel("Time")
+        ax.set_title(title + f" ({freq})")
+
     ax.grid(alpha=0.6)
     ax.legend(title="Project", fontsize=9)
 
@@ -989,19 +1226,21 @@ def plot_timeline_multi(
     buf.seek(0)
     return base64.b64encode(buf.read()).decode("ascii")
 
-
 def plot_accumulative_complexity_multi(
     series_dict,
     date_col: str = "x_mid",
     value_col: str = "y_envelope",
     title: str = "Project Comparison – Accumulative Complexity",
     freq: str = "W",
+    normalize: bool = False,
+    align_start: bool = False,
 ):
-    """你之前那版 multi 累积曲线，略微整理了一下"""
     if not series_dict:
         return None
 
-    fig, ax = plt.subplots(figsize=(12, 6), dpi=150)
+    fig, ax = plt.subplots(figsize=(12, 8), dpi=220)  # 🔥 更大 + 更清晰
+    # fig.subplots_adjust(left=0.06, right=0.97, top=0.92, bottom=0.09)  # 🔥 去白边，放大画面
+
 
     for label, df in series_dict.items():
         local = _prepare_time_series(df, date_col, value_col)
@@ -1020,10 +1259,26 @@ def plot_accumulative_complexity_multi(
             continue
 
         agg["accumulative_complexity"] = agg[value_col].cumsum()
+        y = agg["accumulative_complexity"].astype(float)
+
+        if normalize:
+            ymin, ymax = float(y.min()), float(y.max())
+            if np.isclose(ymax, ymin):
+                y_plot = np.zeros_like(y, dtype=float)
+            else:
+                y_plot = (y - ymin) / (ymax - ymin)
+        else:
+            y_plot = y
+
+        # 🔥 X 按起点对齐 / 使用真实时间
+        if align_start:
+            x = np.arange(len(agg))
+        else:
+            x = agg[date_col]
 
         ax.plot(
-            agg[date_col],
-            agg["accumulative_complexity"],
+            x,
+            y_plot,
             linewidth=2,
             marker="o",
             label=str(label),
@@ -1033,9 +1288,18 @@ def plot_accumulative_complexity_multi(
         plt.close(fig)
         return None
 
-    ax.set_title(title + f" ({freq})")
-    ax.set_xlabel("Time")
-    ax.set_ylabel("Accumulative Complexity")
+    if normalize:
+        ax.set_ylabel("Normalized Accumulative Complexity (0–1)")
+    else:
+        ax.set_ylabel("Accumulative Complexity")
+
+    if align_start:
+        ax.set_xlabel(f"Periods since project start ({freq})")
+        ax.set_title(title + " — Aligned at Start" + ( " [Normalized]" if normalize else "" ))
+    else:
+        ax.set_xlabel("Time")
+        ax.set_title(title + f" ({freq})")
+
     ax.grid(alpha=0.6)
     ax.legend(title="Project", fontsize=9)
 
@@ -1045,22 +1309,19 @@ def plot_accumulative_complexity_multi(
     buf.seek(0)
     return base64.b64encode(buf.read()).decode("ascii")
 
-
 def plot_temporal_variation_multi(
     series_dict,
     date_col: str = "x_mid",
     value_col: str = "y_envelope",
     title: str = "Project Comparison – Temporal Variation in Complexity",
     freq: str = "W",
+    normalize: bool = False,
+    align_start: bool = False,
 ):
-    """
-    对比 ΔComplexity（week over week）。
-    单项目是红/绿 bar，这里多项目方便起见用多条线。
-    """
     if not series_dict:
         return None
 
-    fig, ax = plt.subplots(figsize=(12, 6), dpi=150)
+    fig, ax = plt.subplots(figsize=(12, 8), dpi=150)
 
     for label, df in series_dict.items():
         local = _prepare_time_series(df, date_col, value_col)
@@ -1073,14 +1334,33 @@ def plot_temporal_variation_multi(
             .mean()
             .dropna()
         )
-        change = weekly.diff()
-
-        if change.dropna().empty:
+        change = weekly.diff().dropna()
+        if change.empty:
             continue
 
+        y = change.values.astype(float)
+
+        if normalize:
+            ymin, ymax = y.min(), y.max()
+            if np.isclose(ymax, ymin):
+                y_norm = np.zeros_like(y, dtype=float)
+            else:
+                # 标准化到 [-1,1] 区间
+                denom = max(abs(ymax), abs(ymin))
+                y_norm = y / denom
+            y_plot = y_norm
+        else:
+            y_plot = y
+
+        # 🔥 X 对齐
+        if align_start:
+            x = np.arange(len(change))
+        else:
+            x = change.index
+
         ax.plot(
-            change.index,
-            change.values,
+            x,
+            y_plot,
             linewidth=1.8,
             marker="o",
             label=str(label),
@@ -1090,12 +1370,66 @@ def plot_temporal_variation_multi(
         plt.close(fig)
         return None
 
+    if normalize:
+        ax.set_ylabel("Normalized Δ Complexity (−1 ~ +1)")
+    else:
+        ax.set_ylabel("Δ Complexity")
+
+    if align_start:
+        ax.set_xlabel(f"Periods since project start ({freq})")
+        ax.set_title(title + " — Aligned at Start" + ( " [Normalized]" if normalize else "" ))
+    else:
+        ax.set_xlabel("Time")
+        ax.set_title(title + f" ({freq} Δ)")
+
     ax.axhline(0, color="black", linewidth=1.0)
-    ax.set_title(title + f" ({freq} Δ)")
-    ax.set_xlabel("Time")
-    ax.set_ylabel("Δ Complexity")
     ax.grid(alpha=0.6)
     ax.legend(title="Project", fontsize=9)
+
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", bbox_inches="tight")
+    plt.close(fig)
+    buf.seek(0)
+    return base64.b64encode(buf.read()).decode("ascii")
+
+
+
+def plot_raw_complexity(
+    df,
+    date_col: str = "Datetime",
+    value_col: str = "complexity_raw",
+    title: str = "Raw Complexity over Time",
+):
+    """
+    直接画原始数据：Datetime vs complexity_raw
+    不做 resample，适合作为数据样本展示。
+    """
+    if df is None or df.empty:
+        return None
+
+    data = df[[date_col, value_col]].copy()
+    data[date_col] = pd.to_datetime(data[date_col], errors="coerce")
+    data[value_col] = pd.to_numeric(data[value_col], errors="coerce")
+    data = data.dropna(subset=[date_col, value_col]).sort_values(date_col)
+
+    if data.empty:
+        return None
+
+    fig, ax = plt.subplots(figsize=(12, 4), dpi=150)
+
+    # 用细线 + 小点表现 raw data
+    ax.plot(
+        data[date_col],
+        data[value_col],
+        linewidth=0.8,
+        marker=".",
+        markersize=2,
+    )
+
+    ax.set_title(title)
+    ax.set_xlabel("Time (raw commit timeline)")
+    ax.set_ylabel("Raw Complexity")
+    ax.grid(alpha=0.4)
 
     buf = io.BytesIO()
     fig.savefig(buf, format="png", bbox_inches="tight")
