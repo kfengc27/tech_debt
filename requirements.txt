@@ -3,7 +3,7 @@ gunicorn==22.0.0
 whitenoise==6.7.0
 matplotlib==3.8.4
 numpy==1.26.4
-pandas==2.2.2
+pandas
 # 少量基础依赖，如:
 contourpy==1.2.1
 cycler==0.12.1
