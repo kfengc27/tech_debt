@@ -901,7 +901,7 @@ def plot_temporal_variation_change(
     bar_heights = np.minimum(abs_vals, cap)
 
     # ========= 绘图部分 =========
-    fig, ax = plt.subplots(figsize=(32, 16))
+    fig, ax = plt.subplots(figsize=(36, 16))
 
     # --- 左轴：变化量柱子（全部向上，放大+加粗）---
     ax.bar(
