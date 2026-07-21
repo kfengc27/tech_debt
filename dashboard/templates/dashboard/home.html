@@ -644,6 +644,105 @@
             font-size: 13px;
         }
 
+
+        .table-control-select {
+            min-width: 145px;
+            padding: 9px 34px 9px 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background-color: #f9fafb;
+            color: var(--text-dark);
+            font-size: 13px;
+            outline: none;
+        }
+
+        .table-control-select:focus {
+            border-color: #818cf8;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+        }
+
+        .sortable-header {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .sortable-header-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: inherit;
+            font: inherit;
+            font-weight: inherit;
+            letter-spacing: inherit;
+            text-transform: inherit;
+            white-space: nowrap;
+        }
+
+        .sortable-header-button:hover {
+            color: var(--primary);
+        }
+
+        .sort-icon {
+            color: #a3aabd;
+            font-size: 10px;
+        }
+
+        .pagination-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 16px 22px;
+            border-top: 1px solid var(--border);
+        }
+
+        .pagination-summary {
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        .pagination-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pagination-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 36px;
+            height: 36px;
+            padding: 0 11px;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            background: white;
+            color: #475569;
+            font-size: 12px;
+            font-weight: 650;
+        }
+
+        .pagination-button:hover:not(:disabled),
+        .pagination-button.active {
+            border-color: #c7d2fe;
+            background: #eef2ff;
+            color: var(--primary);
+        }
+
+        .pagination-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.45;
+        }
+
+        .page-number-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
         /* Mobile sidebar button */
 
         .mobile-menu-button {
@@ -704,6 +803,20 @@
             .repository-controls {
                 align-items: stretch;
                 flex-direction: column;
+            }
+
+            .table-control-select {
+                width: 100%;
+            }
+
+            .pagination-footer {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .pagination-actions {
+                width: 100%;
+                justify-content: space-between;
             }
 
             .repository-count {
@@ -1127,8 +1240,8 @@
                     </h2>
 
                     <p class="section-description">
-                        View, search and manage all GitHub repositories in the
-                        technical debt dataset.
+                        View, search, sort and manage all GitHub repositories in
+                        the technical debt dataset.
                     </p>
                 </div>
 
@@ -1144,9 +1257,28 @@
                         >
                     </div>
 
+                    <select
+                        id="sortField"
+                        class="table-control-select"
+                        aria-label="Sort repositories by"
+                    >
+                        <option value="name">Repository name</option>
+                        <option value="download">Download status</option>
+                        <option value="analysis">Analysis status</option>
+                        <option value="updated">Last updated</option>
+                    </select>
+
+                    <select
+                        id="sortDirection"
+                        class="table-control-select"
+                        aria-label="Sort direction"
+                    >
+                        <option value="asc">Ascending</option>
+                        <option value="desc">Descending</option>
+                    </select>
+
                     <span class="repository-count">
-                        {{ total_projects|default:0 }}
-                        repositories
+                        {{ total_projects|default:0 }} repositories
                     </span>
                 </div>
             </div>
@@ -1156,21 +1288,45 @@
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>Repository</th>
+                            <th class="sortable-header" data-sort="name">
+                                <button type="button" class="sortable-header-button">
+                                    Repository
+                                    <i class="fa-solid fa-sort sort-icon"></i>
+                                </button>
+                            </th>
                             <th>GitHub</th>
-                            <th>Download Status</th>
-                            <th>Analysis Status</th>
-                            <th>Last Updated</th>
+                            <th class="sortable-header" data-sort="download">
+                                <button type="button" class="sortable-header-button">
+                                    Download Status
+                                    <i class="fa-solid fa-sort sort-icon"></i>
+                                </button>
+                            </th>
+                            <th class="sortable-header" data-sort="analysis">
+                                <button type="button" class="sortable-header-button">
+                                    Analysis Status
+                                    <i class="fa-solid fa-sort sort-icon"></i>
+                                </button>
+                            </th>
+                            <th class="sortable-header" data-sort="updated">
+                                <button type="button" class="sortable-header-button">
+                                    Last Updated
+                                    <i class="fa-solid fa-sort sort-icon"></i>
+                                </button>
+                            </th>
                             <th class="text-end">Action</th>
                         </tr>
                     </thead>
 
                     <tbody id="repositoryTable">
                         {% for repo in repositories %}
-                            <tr class="repository-row">
-                                <td>
-                                    {{ forloop.counter }}
-                                </td>
+                            <tr
+                                class="repository-row"
+                                data-name="{{ repo.name|default:''|lower|escape }}"
+                                data-download="{% if repo.is_downloaded %}1{% else %}0{% endif %}"
+                                data-analysis="{% if repo.is_analysed %}1{% else %}0{% endif %}"
+                                data-updated="{% if repo.latest_update %}{{ repo.latest_update.checked_at|date:'c' }}{% endif %}"
+                            >
+                                <td class="row-number"></td>
 
                                 <td>
                                     <div class="repo-name-wrapper">
@@ -1198,11 +1354,7 @@
                                         class="github-link"
                                     >
                                         Open GitHub
-
-                                        <i
-                                            class="fa-solid
-                                                   fa-arrow-up-right-from-square"
-                                        ></i>
+                                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
                                     </a>
                                 </td>
 
@@ -1235,11 +1387,11 @@
                                 </td>
 
                                 <td>
-                 {% if repository.latest_update %}
-    {{ repository.latest_update.checked_at|date:"Y-m-d H:i" }}
-{% else %}
-    Never
-{% endif %}
+                                    {% if repo.latest_update %}
+                                        {{ repo.latest_update.checked_at|date:"Y-m-d H:i" }}
+                                    {% else %}
+                                        Never
+                                    {% endif %}
                                 </td>
 
                                 <td class="text-end">
@@ -1247,19 +1399,11 @@
                                         method="post"
                                         action="{% url 'delete_repository' repo.id %}"
                                         class="d-inline"
-                                        onsubmit="
-                                            return confirm(
-                                                'Remove {{ repo.name|escapejs }} ' +
-                                                'from the project list?'
-                                            );
-                                        "
+                                        onsubmit="return confirm('Remove {{ repo.name|escapejs }} from the project list?');"
                                     >
                                         {% csrf_token %}
 
-                                        <button
-                                            type="submit"
-                                            class="delete-button"
-                                        >
+                                        <button type="submit" class="delete-button">
                                             <i class="fa-solid fa-trash"></i>
                                             Delete
                                         </button>
@@ -1272,44 +1416,52 @@
                                 <td colspan="7">
                                     <div class="empty-state">
                                         <i class="fa-regular fa-folder-open"></i>
-
-                                        <h3>
-                                            No repositories recorded
-                                        </h3>
-
-                                        <p>
-                                            Add your first GitHub repository
-                                            using the form above.
-                                        </p>
+                                        <h3>No repositories recorded</h3>
+                                        <p>Add your first GitHub repository using the form above.</p>
                                     </div>
                                 </td>
                             </tr>
                         {% endfor %}
 
-                        <tr
-                            id="noSearchResults"
-                            style="display: none;"
-                        >
+                        <tr id="noSearchResults" style="display: none;">
                             <td colspan="7">
                                 <div class="empty-state">
-                                    <i
-                                        class="fa-solid
-                                               fa-magnifying-glass"
-                                    ></i>
-
-                                    <h3>
-                                        No matching repositories
-                                    </h3>
-
-                                    <p>
-                                        Try searching by repository name or
-                                        GitHub URL.
-                                    </p>
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                    <h3>No matching repositories</h3>
+                                    <p>Try searching by repository name or GitHub URL.</p>
                                 </div>
                             </td>
                         </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <div class="pagination-footer">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="pagination-summary">Rows per page</span>
+                    <select id="rowsPerPage" class="table-control-select" aria-label="Rows per page">
+                               <option value="10">10</option>
+                        <option value="15" selected>15</option>
+                        <option value="30">30</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                    <span id="paginationSummary" class="pagination-summary"></span>
+                </div>
+
+                <div class="pagination-actions">
+                    <button id="previousPage" type="button" class="pagination-button">
+                        <i class="fa-solid fa-chevron-left me-1"></i>
+                        Previous
+                    </button>
+
+                    <div id="pageNumbers" class="page-number-group"></div>
+
+                    <button id="nextPage" type="button" class="pagination-button">
+                        Next
+                        <i class="fa-solid fa-chevron-right ms-1"></i>
+                    </button>
+                </div>
             </div>
         </section>
 
@@ -1323,79 +1475,208 @@
 ></script>
 
 <script>
-    const searchInput = document.getElementById(
-        "repositorySearch"
+    const searchInput = document.getElementById("repositorySearch");
+    const repositoryTable = document.getElementById("repositoryTable");
+    const allRepositoryRows = Array.from(
+        document.querySelectorAll(".repository-row")
     );
+    const noSearchResults = document.getElementById("noSearchResults");
+    const rowsPerPageSelect = document.getElementById("rowsPerPage");
+    const sortFieldSelect = document.getElementById("sortField");
+    const sortDirectionSelect = document.getElementById("sortDirection");
+    const previousPageButton = document.getElementById("previousPage");
+    const nextPageButton = document.getElementById("nextPage");
+    const pageNumbers = document.getElementById("pageNumbers");
+    const paginationSummary = document.getElementById("paginationSummary");
 
-    const repositoryRows = document.querySelectorAll(
-        ".repository-row"
-    );
+    let currentPage = 1;
+    let rowsPerPage = 15;
+    let sortField = "name";
+    let sortDirection = "asc";
 
-    const noSearchResults = document.getElementById(
-        "noSearchResults"
-    );
+    function getFilteredRows() {
+        const keyword = searchInput?.value.toLowerCase().trim() || "";
 
-    searchInput?.addEventListener("input", function () {
-        const keyword = this.value
-            .toLowerCase()
-            .trim();
+        return allRepositoryRows.filter((row) =>
+            row.textContent.toLowerCase().includes(keyword)
+        );
+    }
 
-        let visibleRows = 0;
+    function getSortValue(row, field) {
+        if (field === "download" || field === "analysis") {
+            return Number(row.dataset[field] || 0);
+        }
 
-        repositoryRows.forEach((row) => {
-            const rowText = row.textContent
-                .toLowerCase();
+        if (field === "updated") {
+            const value = row.dataset.updated;
+            return value ? new Date(value).getTime() : 0;
+        }
 
-            const matches = rowText.includes(keyword);
+        return row.dataset.name || "";
+    }
 
-            row.style.display = matches
-                ? ""
-                : "none";
+    function sortRows(rows) {
+        return [...rows].sort((firstRow, secondRow) => {
+            const firstValue = getSortValue(firstRow, sortField);
+            const secondValue = getSortValue(secondRow, sortField);
 
-            if (matches) {
-                visibleRows += 1;
+            let comparison;
+            if (typeof firstValue === "string") {
+                comparison = firstValue.localeCompare(secondValue);
+            } else {
+                comparison = firstValue - secondValue;
             }
+
+            return sortDirection === "asc" ? comparison : -comparison;
+        });
+    }
+
+    function updateSortIcons() {
+        document.querySelectorAll(".sortable-header").forEach((header) => {
+            const icon = header.querySelector(".sort-icon");
+            const isActive = header.dataset.sort === sortField;
+
+            icon.className = "fa-solid sort-icon " + (
+                isActive
+                    ? sortDirection === "asc"
+                        ? "fa-sort-up"
+                        : "fa-sort-down"
+                    : "fa-sort"
+            );
+        });
+    }
+
+    function renderPageNumbers(totalPages) {
+        pageNumbers.innerHTML = "";
+        if (totalPages <= 1) return;
+
+        const startPage = Math.max(1, currentPage - 2);
+        const endPage = Math.min(totalPages, currentPage + 2);
+
+        for (let page = startPage; page <= endPage; page += 1) {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "pagination-button" + (
+                page === currentPage ? " active" : ""
+            );
+            button.textContent = page;
+            button.addEventListener("click", () => {
+                currentPage = page;
+                renderRepositories();
+            });
+            pageNumbers.appendChild(button);
+        }
+    }
+
+    function renderRepositories() {
+        const filteredRows = sortRows(getFilteredRows());
+        const totalRows = filteredRows.length;
+        const totalPages = Math.max(1, Math.ceil(totalRows / rowsPerPage));
+
+        currentPage = Math.min(currentPage, totalPages);
+        const startIndex = (currentPage - 1) * rowsPerPage;
+        const endIndex = Math.min(startIndex + rowsPerPage, totalRows);
+        const visibleRows = new Set(filteredRows.slice(startIndex, endIndex));
+
+        allRepositoryRows.forEach((row) => {
+            row.style.display = visibleRows.has(row) ? "" : "none";
         });
 
-        if (
-            noSearchResults &&
-            repositoryRows.length > 0
-        ) {
-            noSearchResults.style.display =
-                visibleRows === 0
-                    ? ""
-                    : "none";
+        filteredRows.forEach((row) => repositoryTable.appendChild(row));
+        if (noSearchResults) repositoryTable.appendChild(noSearchResults);
+
+        filteredRows.slice(startIndex, endIndex).forEach((row, index) => {
+            const numberCell = row.querySelector(".row-number");
+            if (numberCell) numberCell.textContent = startIndex + index + 1;
+        });
+
+        if (noSearchResults && allRepositoryRows.length > 0) {
+            noSearchResults.style.display = totalRows === 0 ? "" : "none";
+        }
+
+        previousPageButton.disabled = currentPage <= 1 || totalRows === 0;
+        nextPageButton.disabled = currentPage >= totalPages || totalRows === 0;
+
+        paginationSummary.textContent = totalRows === 0
+            ? "Showing 0 repositories"
+            : `Showing ${startIndex + 1}–${endIndex} of ${totalRows}`;
+
+        renderPageNumbers(totalPages);
+        updateSortIcons();
+    }
+
+    searchInput?.addEventListener("input", () => {
+        currentPage = 1;
+        renderRepositories();
+    });
+
+    rowsPerPageSelect?.addEventListener("change", function () {
+        rowsPerPage = Number(this.value);
+        currentPage = 1;
+        renderRepositories();
+    });
+
+    sortFieldSelect?.addEventListener("change", function () {
+        sortField = this.value;
+        currentPage = 1;
+        renderRepositories();
+    });
+
+    sortDirectionSelect?.addEventListener("change", function () {
+        sortDirection = this.value;
+        currentPage = 1;
+        renderRepositories();
+    });
+
+    document.querySelectorAll(".sortable-header").forEach((header) => {
+        header.addEventListener("click", () => {
+            const selectedField = header.dataset.sort;
+
+            if (sortField === selectedField) {
+                sortDirection = sortDirection === "asc" ? "desc" : "asc";
+            } else {
+                sortField = selectedField;
+                sortDirection = "asc";
+            }
+
+            sortFieldSelect.value = sortField;
+            sortDirectionSelect.value = sortDirection;
+            currentPage = 1;
+            renderRepositories();
+        });
+    });
+
+    previousPageButton?.addEventListener("click", () => {
+        if (currentPage > 1) {
+            currentPage -= 1;
+            renderRepositories();
         }
     });
 
-    const mobileMenuButton = document.getElementById(
-        "mobileMenuButton"
-    );
+    nextPageButton?.addEventListener("click", () => {
+        currentPage += 1;
+        renderRepositories();
+    });
 
-    const sidebar = document.getElementById(
-        "sidebar"
-    );
+    const mobileMenuButton = document.getElementById("mobileMenuButton");
+    const sidebar = document.getElementById("sidebar");
 
-    mobileMenuButton?.addEventListener(
-        "click",
-        function () {
-            sidebar?.classList.toggle("open");
+    mobileMenuButton?.addEventListener("click", () => {
+        sidebar?.classList.toggle("open");
+    });
+
+    document.addEventListener("click", (event) => {
+        if (
+            window.innerWidth <= 992 &&
+            sidebar?.classList.contains("open") &&
+            !sidebar.contains(event.target) &&
+            !mobileMenuButton.contains(event.target)
+        ) {
+            sidebar.classList.remove("open");
         }
-    );
+    });
 
-    document.addEventListener(
-        "click",
-        function (event) {
-            if (
-                window.innerWidth <= 992 &&
-                sidebar?.classList.contains("open") &&
-                !sidebar.contains(event.target) &&
-                !mobileMenuButton.contains(event.target)
-            ) {
-                sidebar.classList.remove("open");
-            }
-        }
-    );
+    renderRepositories();
 </script>
 
 </body>
