@@ -15,7 +15,8 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
+TECH_DEBT_PROJECT_DIR = BASE_DIR / "tech_debt_project"
+REPOS_DIR = TECH_DEBT_PROJECT_DIR / "repos"
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
