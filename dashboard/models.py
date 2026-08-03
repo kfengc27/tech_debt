@@ -79,6 +79,11 @@ class Repository(models.Model):
 
         self.name = path_parts[-1]
 
+    class Meta:
+        db_table = "Repositories"
+
+
+
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
@@ -141,6 +146,7 @@ class UpdateHistory(models.Model):
     )
 
     class Meta:
+        db_table = "UpdateHistory"
         ordering = ["-checked_at"]
         indexes = [
             models.Index(fields=["checked_at"]),
@@ -150,3 +156,119 @@ class UpdateHistory(models.Model):
 
     def __str__(self):
         return f"{self.repository.name} - {self.status} - {self.checked_at}"
+
+
+
+
+class AnalysisRun(models.Model):
+
+    repository = models.ForeignKey(
+        Repository,
+        on_delete=models.CASCADE,
+        related_name="analysis_runs"
+    )
+
+    # Basic metrics
+    lines_of_code = models.IntegerField(
+        null=True,
+        blank=True
+    )
+
+    file_count = models.IntegerField(
+        null=True,
+        blank=True
+    )
+
+    repository_size_mb = models.FloatField(
+        null=True,
+        blank=True
+    )
+
+    # Technical debt metrics
+    cyclomatic_complexity = models.FloatField(
+        null=True,
+        blank=True
+    )
+
+    maintainability_index = models.FloatField(
+        null=True,
+        blank=True
+    )
+
+
+    # Analysis information
+    analysed_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    commit_hash = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True
+    )
+
+    class Meta:
+        db_table = "Analysis_Run"
+        ordering = ["-analysed_at"]
+
+
+class ProjectStatus(models.Model):
+
+    ANALYSIS_STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("running", "Running"),
+        ("completed", "Completed"),
+        ("failed", "Failed"),
+    ]
+
+    PROJECT_STATUS_CHOICES = [
+        ("active", "Active"),
+        ("watch", "Watch"),
+        ("drop_candidate", "Drop Candidate"),
+        ("dropped", "Dropped"),
+        ("archived", "Archived"),
+    ]
+
+    repository = models.OneToOneField(
+        Repository,
+        on_delete=models.CASCADE,
+        related_name="project_status",
+    )
+
+    # Analysis
+    analysis_status = models.CharField(
+        max_length=20,
+        choices=ANALYSIS_STATUS_CHOICES,
+        default="pending",
+    )
+
+    last_analyzed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    # Project lifecycle
+    project_status = models.CharField(
+        max_length=30,
+        choices=PROJECT_STATUS_CHOICES,
+        default="active",
+    )
+
+    drop_reason = models.TextField(
+        blank=True,
+        default="",
+    )
+
+    # Optional human decision
+    notes = models.TextField(
+        blank=True,
+        default="",
+    )
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "project_status"
+
+    def __str__(self):
+        return f"{self.repository.name} - {self.project_status}"

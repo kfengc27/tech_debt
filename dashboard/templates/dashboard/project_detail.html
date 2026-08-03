@@ -1,0 +1,1018 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+    .project-page {
+        padding: 24px;
+    }
+
+    .project-container {
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    /* Back */
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 18px;
+
+        color: #64748b;
+        font-size: 14px;
+        font-weight: 500;
+        text-decoration: none;
+    }
+
+    .back-link:hover {
+        color: #4f46e5;
+    }
+
+    /* Main card */
+    .project-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 18px;
+
+        padding: 28px;
+        margin-bottom: 24px;
+
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+    }
+
+    /* Header */
+    .project-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+
+        gap: 30px;
+    }
+
+    .project-title-section {
+        flex: 1;
+    }
+
+    .project-title {
+        margin: 0 0 8px 0;
+
+        font-size: 30px;
+        font-weight: 700;
+        color: #172033;
+    }
+
+    .project-url {
+        color: #64748b;
+        font-size: 14px;
+        text-decoration: none;
+    }
+
+    .project-url:hover {
+        color: #4f46e5;
+    }
+
+    /* Status */
+    .status-group {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+
+        padding: 7px 12px;
+        border-radius: 999px;
+
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .status-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+    }
+
+    .status-downloaded {
+        background: #e9fbf1;
+        color: #16803c;
+    }
+
+    .status-downloaded .status-dot {
+        background: #16a34a;
+    }
+
+    .status-pending {
+        background: #f1f5f9;
+        color: #64748b;
+    }
+
+    .status-pending .status-dot {
+        background: #64748b;
+    }
+
+    .status-completed {
+        background: #eef2ff;
+        color: #4f46e5;
+    }
+
+    .status-completed .status-dot {
+        background: #4f46e5;
+    }
+
+    .status-failed {
+        background: #fff1f2;
+        color: #dc2626;
+    }
+
+    .status-failed .status-dot {
+        background: #dc2626;
+    }
+
+    /* Actions */
+    .project-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 26px;
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+
+        padding: 11px 17px;
+
+        border-radius: 10px;
+        border: 1px solid #dbe2ea;
+
+        font-size: 14px;
+        font-weight: 600;
+
+        text-decoration: none;
+        cursor: pointer;
+
+        transition: all 0.15s ease;
+    }
+
+    .btn-secondary {
+        background: #ffffff;
+        color: #334155;
+    }
+
+    .btn-secondary:hover {
+        border-color: #a5b4fc;
+        color: #4f46e5;
+        background: #fafaff;
+    }
+
+    .btn-primary {
+        background: #5046e5;
+        color: #ffffff;
+        border-color: #5046e5;
+    }
+
+    .btn-primary:hover {
+        background: #4338ca;
+        border-color: #4338ca;
+    }
+
+    /* Summary */
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+
+        margin-bottom: 24px;
+    }
+
+    .summary-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+
+        padding: 22px;
+
+        min-height: 115px;
+    }
+
+    .summary-label {
+        color: #64748b;
+
+        font-size: 13px;
+        font-weight: 600;
+
+        margin-bottom: 12px;
+    }
+
+    .summary-value {
+        color: #172033;
+
+        font-size: 21px;
+        font-weight: 700;
+    }
+
+    .summary-subtext {
+        margin-top: 7px;
+
+        color: #94a3b8;
+        font-size: 12px;
+    }
+
+    /* Tabs */
+    .tabs-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 18px;
+
+        overflow: hidden;
+    }
+
+    .tabs {
+        display: flex;
+        gap: 5px;
+
+        padding: 0 24px;
+
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .tab {
+        padding: 18px 15px 15px;
+
+        color: #64748b;
+
+        font-size: 14px;
+        font-weight: 600;
+
+        text-decoration: none;
+
+        border-bottom: 3px solid transparent;
+    }
+
+    .tab:hover {
+        color: #4f46e5;
+    }
+
+    .tab.active {
+        color: #4f46e5;
+        border-bottom-color: #4f46e5;
+    }
+
+    /* Overview */
+    .overview-content {
+        padding: 28px;
+    }
+
+    .overview-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+
+    .info-panel {
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+
+        padding: 22px;
+    }
+
+    .panel-title {
+        margin: 0 0 18px 0;
+
+        font-size: 17px;
+        font-weight: 700;
+        color: #172033;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        gap: 20px;
+
+        padding: 13px 0;
+
+        border-bottom: 1px solid #eef2f7;
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        color: #64748b;
+        font-size: 14px;
+    }
+
+    .info-value {
+        color: #172033;
+        font-size: 14px;
+        font-weight: 600;
+
+        text-align: right;
+    }
+
+    .empty-state {
+        color: #94a3b8;
+        font-size: 14px;
+    }
+
+    @media (max-width: 1000px) {
+        .summary-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .overview-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .project-header {
+            flex-direction: column;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .project-page {
+            padding: 14px;
+        }
+
+        .summary-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .project-title {
+            font-size: 24px;
+        }
+
+        .tabs {
+            overflow-x: auto;
+        }
+
+        .tab {
+            white-space: nowrap;
+        }
+    }
+
+    /* Interactive tab content */
+    .tab-pane {
+        display: none;
+        padding: 28px;
+    }
+
+    .tab-pane.active {
+        display: block;
+    }
+
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 18px;
+        margin-bottom: 24px;
+    }
+
+    .metric-card {
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 20px;
+        background: #ffffff;
+    }
+
+    .metric-card-title {
+        color: #64748b;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .metric-card-value {
+        color: #172033;
+        font-size: 26px;
+        font-weight: 700;
+    }
+
+    .metric-card-subtext {
+        margin-top: 7px;
+        color: #94a3b8;
+        font-size: 12px;
+    }
+
+    .metric-section {
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 22px;
+        margin-top: 20px;
+    }
+
+    .metric-table,
+    .commit-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .metric-table th,
+    .metric-table td,
+    .commit-table th,
+    .commit-table td {
+        padding: 13px 14px;
+        border-bottom: 1px solid #eef2f7;
+        text-align: left;
+        font-size: 14px;
+        vertical-align: top;
+    }
+
+    .metric-table th,
+    .commit-table th {
+        color: #64748b;
+        font-weight: 600;
+        background: #f8fafc;
+    }
+
+    .metric-table td,
+    .commit-table td {
+        color: #334155;
+    }
+
+    .commit-hash {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 7px;
+        background: #eef2ff;
+        color: #4f46e5;
+        font-family: monospace;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .commit-message {
+        color: #172033;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .commit-meta {
+        color: #94a3b8;
+        font-size: 12px;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+    }
+
+    @media (max-width: 1000px) {
+        .metrics-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 600px) {
+        .metrics-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .tab-pane {
+            padding: 18px;
+        }
+    }
+
+</style>
+
+
+<div class="project-page">
+
+    <div class="project-container">
+
+        <!-- Back -->
+        <a
+            href="javascript:history.back()"
+            class="back-link"
+        >
+            ← Back to repositories
+        </a>
+
+
+        <!-- Project Header -->
+        <div class="project-card">
+
+            <div class="project-header">
+
+                <div class="project-title-section">
+
+                    <h1 class="project-title">
+                        {{ repository.name }}
+                    </h1>
+
+                    <a
+                        href="{{ repository.repo_url }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="project-url"
+                    >
+                        {{ repository.repo_url }}
+                        
+                    </a>
+
+                </div>
+
+
+                <div class="status-group">
+
+                    <!-- Download status -->
+
+                    {% if repository.download_status|lower == "downloaded" %}
+
+                        <span class="status-badge status-downloaded">
+                            <span class="status-dot"></span>
+                            Downloaded
+                        </span>
+
+                    {% else %}
+
+                        <span class="status-badge status-pending">
+                            <span class="status-dot"></span>
+                            {{ repository.download_status|default:"Pending" }}
+                        </span>
+
+                    {% endif %}
+
+
+                    <!-- Analysis status -->
+
+                    {% if repository.analysis_status|lower == "completed" %}
+
+                        <span class="status-badge status-completed">
+                            <span class="status-dot"></span>
+                            Completed
+                        </span>
+
+                    {% elif repository.analysis_status|lower == "failed" %}
+
+                        <span class="status-badge status-failed">
+                            <span class="status-dot"></span>
+                            Failed
+                        </span>
+
+                    {% else %}
+
+                        <span class="status-badge status-pending">
+                            <span class="status-dot"></span>
+                            {{ repository.analysis_status|default:"Pending" }}
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+            <!-- Actions -->
+
+            <div class="project-actions">
+
+                <a
+                    href="{{ repository.repo_url }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="action-btn btn-secondary"
+                >
+                <i class="fa-brands fa-github"></i>
+                    GitHub
+                </a>
+
+
+                <button
+                    type="button"
+                    class="action-btn btn-secondary"
+                >
+                    🔄 Check Update
+                </button>
+
+
+                <button
+                    type="button"
+                    class="action-btn btn-primary"
+                >
+                    ▶ Run Analysis
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- Summary Cards -->
+
+        <div class="summary-grid">
+
+            <div class="summary-card">
+
+                <div class="summary-label">
+                    Download Status
+                </div>
+
+                <div class="summary-value">
+                    {{ repository.is_downloaded|default:"Pending" }}
+                </div>
+
+                <div class="summary-subtext">
+                    Current local repository status
+                </div>
+
+            </div>
+
+
+            <div class="summary-card">
+
+                <div class="summary-label">
+                    Analysis Status
+                </div>
+
+                <div class="summary-value">
+                    {{ repository.analysis_status|default:"Pending" }}
+                </div>
+
+                <div class="summary-subtext">
+                    Latest technical debt analysis
+                </div>
+
+            </div>
+
+
+            <div class="summary-card">
+
+                <div class="summary-label">
+                    Last Updated
+                </div>
+
+                <div class="summary-value">
+
+                    {% if repository.last_checked_at %}
+                        {{ repository.last_checked_at|date:"d M Y" }}
+                    {% else %}
+                        Never
+                    {% endif %}
+
+                </div>
+
+                <div class="summary-subtext">
+
+                    {% if repository.last_checked_at %}
+                        {{ repository.last_checked_at|date:"H:i" }}
+                    {% else %}
+                        No update check performed
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+            <div class="summary-card">
+
+                <div class="summary-label">
+                    Last Analyszed
+                </div>
+
+                <div class="summary-value">
+
+                    {% if repository.last_updated_at %}
+                        {{ repository.last_updated_at|date:"d M Y" }}
+                    {% else %}
+                        Never
+                    {% endif %}
+
+                </div>
+
+                <div class="summary-subtext">
+                    Latest repository update
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Tabs / Overview -->
+
+        
+        <div class="tabs-card">
+
+            <div class="tabs">
+                <a href="#" class="tab active" data-tab="overview-tab">Overview</a>
+                <a href="#" class="tab" data-tab="metrics-tab">Metrics</a>
+                <a href="#" class="tab" data-tab="commits-tab">Commit History</a>
+                <a href="#" class="tab" data-tab="analysis-tab">Analysis History</a>
+                <a href="#" class="tab" data-tab="evolution-tab">Evolution</a>
+            </div>
+
+            <!-- Overview -->
+            <div id="overview-tab" class="tab-pane active">
+                <div class="overview-grid">
+
+                    <div class="info-panel">
+                        <h2 class="panel-title">Repository Information</h2>
+
+                        <div class="info-row">
+                            <span class="info-label">Repository</span>
+                            <span class="info-value">{{ repository.name }}</span>
+                        </div>
+
+                        <div class="info-row">
+                            <span class="info-label">GitHub URL</span>
+                            <span class="info-value">
+                                <a
+                                    href="{{ repository.github_url }}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style="color:#4f46e5; text-decoration:none;"
+                                >
+                                    Open GitHub ↗
+                                </a>
+                            </span>
+                        </div>
+
+                        <div class="info-row">
+                            <span class="info-label">Download Status</span>
+                            <span class="info-value">
+                                {% if repository.is_downloaded %}
+                                    Downloaded
+                                {% else %}
+                                    Pending
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <div class="info-row">
+                            <span class="info-label">Analysis Status</span>
+                            <span class="info-value">
+                                {{ repository.analysis_status|default:"Pending" }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="info-panel">
+                        <h2 class="panel-title">Repository Activity</h2>
+
+                        <div class="info-row">
+                            <span class="info-label">Downloaded Time</span>
+                            <span class="info-value">
+                                {% if repository.is_downloaded %}
+                                    {{ repository.created_at|date:"d M Y H:i" }}
+                                {% else %}
+                                    Never
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <div class="info-row">
+                            <span class="info-label">Last Updated</span>
+                            <span class="info-value">
+                                {% if repository.updated_at %}
+                                    {{ repository.updated_at|date:"d M Y H:i" }}
+                                {% else %}
+                                    Never
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <div class="info-row">
+                            <span class="info-label">Last Analysed</span>
+                            <span class="info-value">
+                                {% if repository.last_analyzed_at %}
+                                    {{ repository.last_analyzed_at|date:"d M Y H:i" }}
+                                {% else %}
+                                    Never
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Demo Metrics -->
+            <div id="metrics-tab" class="tab-pane">
+
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-card-title">Lines of Code</div>
+                        <div class="metric-card-value">24,860</div>
+                        <div class="metric-card-subtext">Python source code</div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-card-title">Files Analysed</div>
+                        <div class="metric-card-value">186</div>
+                        <div class="metric-card-subtext">Source files included</div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-card-title">Cyclomatic Complexity</div>
+                        <div class="metric-card-value">12.4</div>
+                        <div class="metric-card-subtext">Average per function</div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-card-title">Maintainability Index</div>
+                        <div class="metric-card-value">68.7</div>
+                        <div class="metric-card-subtext">Moderately maintainable</div>
+                    </div>
+                </div>
+
+                <div class="metric-section">
+                    <h2 class="panel-title">Complexity Metrics</h2>
+
+                    <div class="table-wrapper">
+                        <table class="metric-table">
+                            <thead>
+                                <tr>
+                                    <th>Metric</th>
+                                    <th>Value</th>
+                                    <th>Interpretation</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Cyclomatic Complexity</td>
+                                    <td>12.4</td>
+                                    <td>Moderate complexity; some functions may require refactoring.</td>
+                                </tr>
+                                <tr>
+                                    <td>Cognitive Complexity</td>
+                                    <td>15.8</td>
+                                    <td>Several methods may be difficult to understand.</td>
+                                </tr>
+                                <tr>
+                                    <td>Maximum Nesting Depth</td>
+                                    <td>6</td>
+                                    <td>Deeply nested logic exists in some modules.</td>
+                                </tr>
+                                <tr>
+                                    <td>Average Function Length</td>
+                                    <td>28.6 lines</td>
+                                    <td>Most functions are within an acceptable range.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="metric-section">
+                    <h2 class="panel-title">Code Quality Metrics</h2>
+
+                    <div class="table-wrapper">
+                        <table class="metric-table">
+                            <thead>
+                                <tr>
+                                    <th>Metric</th>
+                                    <th>Value</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Maintainability Index</td>
+                                    <td>68.7</td>
+                                    <td>Acceptable</td>
+                                </tr>
+                                <tr>
+                                    <td>Technical Debt Ratio</td>
+                                    <td>8.2%</td>
+                                    <td>Moderate</td>
+                                </tr>
+                                <tr>
+                                    <td>Duplicated Code</td>
+                                    <td>6.4%</td>
+                                    <td>Needs review</td>
+                                </tr>
+                                <tr>
+                                    <td>Comment Density</td>
+                                    <td>14.6%</td>
+                                    <td>Acceptable</td>
+                                </tr>
+                                <tr>
+                                    <td>Estimated Remediation Time</td>
+                                    <td>42 hours</td>
+                                    <td>Demo estimate</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Commit History -->
+<div id="commits-tab" class="tab-pane">
+    <h2 class="panel-title">Commit History</h2>
+
+    {% if commits %}
+        <div class="table-wrapper">
+            <table class="commit-table">
+                <thead>
+                    <tr>
+                        <th>Commit</th>
+                        <th>Message</th>
+                        <th>Author</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for commit in commits %}
+                        <tr>
+                            <td>
+                                <span class="commit-hash">
+                                    {{ commit.short_hash }}
+                                </span>
+                            </td>
+
+                            <td>
+                                <div class="commit-message">
+                                    {{ commit.message|default:"No commit message" }}
+                                </div>
+                            </td>
+
+                            <td>
+                                <div>{{ commit.author|default:"Unknown" }}</div>
+
+                                {% if commit.email %}
+                                    <div class="commit-meta">
+                                        {{ commit.email }}
+                                    </div>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {{ commit.date|default:"—" }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            No commit history is available.
+        </div>
+    {% endif %}
+</div>
+
+            <!-- Demo placeholder tabs -->
+            <div id="analysis-tab" class="tab-pane">
+                <div class="empty-state">
+                    Analysis history will be displayed here.
+                </div>
+            </div>
+
+            <div id="evolution-tab" class="tab-pane">
+                <div class="empty-state">
+                    Evolution charts will be displayed here.
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const tabs = document.querySelectorAll(".tab");
+        const panes = document.querySelectorAll(".tab-pane");
+
+        tabs.forEach(function (tab) {
+            tab.addEventListener("click", function (event) {
+                event.preventDefault();
+
+                const targetId = tab.dataset.tab;
+
+                tabs.forEach(function (item) {
+                    item.classList.remove("active");
+                });
+
+                panes.forEach(function (pane) {
+                    pane.classList.remove("active");
+                });
+
+                tab.classList.add("active");
+
+                const targetPane = document.getElementById(targetId);
+
+                if (targetPane) {
+                    targetPane.classList.add("active");
+                }
+            });
+        });
+    });
+</script>
+
+{% endblock %}

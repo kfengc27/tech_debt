@@ -23,6 +23,10 @@
     >
 
     <style>
+        .stat-icon {
+    border: none;
+    cursor: pointer;
+}
         :root {
             --sidebar-width: 250px;
             --primary: #4f46e5;
@@ -544,6 +548,17 @@
             font-weight: 700;
         }
 
+        .repo-detail-link {
+    color: var(--text-dark);
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.repo-detail-link:hover {
+    color: var(--primary);
+    text-decoration: underline;
+}
+
         .repo-url {
             display: block;
             max-width: 340px;
@@ -1026,9 +1041,29 @@
                             Downloaded Projects
                         </span>
 
-                        <div class="metric-icon blue">
-                            <i class="fa-solid fa-cloud-arrow-down"></i>
-                        </div>
+<form
+    method="post"
+    action="{% url 'download_all_repositories' %}"
+    class="d-inline"
+>
+    {% csrf_token %}
+
+    <button
+        type="submit"
+        class="stat-icon stat-icon-blue"
+        title="Download pending repositories"
+    >
+        <i class="fa-solid fa-cloud-arrow-down"></i>
+    </button>
+</form>
+
+<script>
+function confirmDownload() {
+    return confirm(
+        "Start downloading all pending repositories in the background?"
+    );
+}
+</script>
                     </div>
 
                     <div class="metric-main">
@@ -1070,9 +1105,30 @@
                             Updated Last Week
                         </span>
 
-                        <div class="metric-icon orange">
-                            <i class="fa-solid fa-arrows-rotate"></i>
-                        </div>
+               <form
+    method="post"
+    action="{% url 'update_all_repositories' %}"
+    onsubmit="return confirmUpdateRepositories();"
+>
+    {% csrf_token %}
+
+    <button
+        type="submit"
+        class="btn btn-warning"
+    >
+        <i class="fa-solid fa-rotate me-1"></i>
+        Update All
+    </button>
+</form>
+
+<script>
+    function confirmUpdateRepositories() {
+        return confirm(
+            "Are you sure you want to check and update all downloaded repositories?\n\n" +
+            "This process will run in the background and may take several minutes."
+        );
+    }
+</script>
                     </div>
 
                     <div class="metric-main">
@@ -1161,8 +1217,7 @@
                     </h2>
 
                     <p class="section-description">
-                        Enter a GitHub repository URL. Duplicate repositories
-                        will not be added.
+     Enter one or more GitHub repository URLs. Duplicate repositories will be skipped automatically.
                     </p>
                 </div>
             </div>
@@ -1172,59 +1227,48 @@
                     {% csrf_token %}
 
                     <div class="row g-3 align-items-start">
-                        <div class="col-lg-10">
-                            <label
-                                for="{{ repository_form.github_url.id_for_label }}"
-                                class="form-label fw-semibold"
-                            >
-                                GitHub repository URL
-                            </label>
+    <div class="col-lg-10">
 
-                            {{ repository_form.github_url }}
+        <label
+            for="github_urls"
+            class="form-label fw-semibold"
+        >
+            GitHub repository URLs
+        </label>
 
-                            {% if repository_form.github_url.help_text %}
-                                <div class="form-text">
-                                    {{ repository_form.github_url.help_text }}
-                                </div>
-                            {% endif %}
+        <textarea
+            name="github_urls"
+            id="github_urls"
+            class="form-control"
+            rows="6"
+            placeholder="https://github.com/apache/superset
+https://github.com/home-assistant/core
+https://github.com/ansible/ansible"
+        ></textarea>
 
-                            {% for error in repository_form.github_url.errors %}
-                                <div class="text-danger small mt-2">
-                                    <i
-                                        class="fa-solid fa-circle-exclamation me-1"
-                                    ></i>
+        <div class="form-text">
+            Enter one GitHub repository URL per line.
+            Duplicate repositories will be skipped automatically.
+        </div>
 
-                                    {{ error }}
-                                </div>
-                            {% endfor %}
+        {% for error in repository_form.non_field_errors %}
+            <div class="text-danger small mt-2">
+                <i class="fa-solid fa-circle-exclamation me-1"></i>
+                {{ error }}
+            </div>
+        {% endfor %}
 
-                            {% for error in repository_form.non_field_errors %}
-                                <div class="text-danger small mt-2">
-                                    <i
-                                        class="fa-solid fa-circle-exclamation me-1"
-                                    ></i>
+    </div>
+</div>
 
-                                    {{ error }}
-                                </div>
-                            {% endfor %}
-                        </div>
-
-                        <div class="col-lg-2">
-                            <label
-                                class="form-label d-none d-lg-block"
-                                aria-hidden="true"
-                            >
-                                &nbsp;
-                            </label>
-
-                            <button
-                                type="submit"
-                                class="add-button w-100"
-                            >
-                                <i class="fa-solid fa-plus"></i>
-                                Add Repository
-                            </button>
-                        </div>
+                    <div class="mt-3">
+                        <button
+                            type="submit"
+                            class="add-button"
+                        >
+                            <i class="fa-solid fa-plus"></i>
+                            Add Repository
+                        </button>
                     </div>
                 </form>
             </div>
@@ -1336,7 +1380,9 @@
 
                                         <div>
                                             <p class="repo-title">
+                                                 <a href="{% url 'project_detail' repo.id %}" class="repo-detail-link">
                                                 {{ repo.name|default:"Unnamed repository" }}
+                                                    </a>
                                             </p>
 
                                             <span class="repo-url">

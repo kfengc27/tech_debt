@@ -31,6 +31,9 @@ ALLOWED_HOSTS = [
     "techdebt-production.up.railway.app",
     "localhost",
     "127.0.0.1",
+    "*",
+    "https://vision-slow-province-everyday.trycloudflare.com"
+    
 ]
 
 
