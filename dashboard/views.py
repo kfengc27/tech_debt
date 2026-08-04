@@ -10,7 +10,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from .forms import RepositoryForm
-from .models import Repository, UpdateHistory
+from .models import ComplexitySnapshot, Repository, UpdateHistory
 import subprocess
 import threading
 
@@ -230,21 +230,6 @@ def delete_repository(request, repository_id):
 
     return redirect("dashboard_home")
 
-
-
-def project_detail(request, pk):
-    repository = get_object_or_404(
-        Repository,
-        pk=pk
-    )
-
-    return render(
-        request,
-        "dashboard/project_detail.html",
-        {
-            "repository": repository,
-        }
-    )
 
 
 def download_repositories_background(repository_ids):
@@ -523,21 +508,85 @@ def get_commit_history(repo_path, limit=50):
     print(f"Fetched {len(commits)} commits for {repo_path}")
     return commits
 
+
 def project_detail(request, pk):
     repository = get_object_or_404(
         Repository,
-        pk=pk
+        pk=pk,
     )
 
-    repo_path = (
-        settings.REPOS_DIR
-        / repository.name
+    repo_path = settings.REPOS_DIR / repository.name
+
+    snapshots = (
+        ComplexitySnapshot.objects
+        .filter(repository_id=repository.id)
+        .order_by("commit_date", "id")
     )
 
-    commits = get_commit_history(
-        repo_path,
-        limit=50
-    )
+    snapshot_count = snapshots.count()
+
+    print("=" * 60)
+    print(f"Repository ID: {repository.id}")
+    print(f"Repository name: {repository.name}")
+    print(f"Snapshot count: {snapshot_count}")
+
+    first_snapshot = snapshots.first()
+    last_snapshot = snapshots.last()
+
+    if first_snapshot:
+        print(
+            "First snapshot:",
+            first_snapshot.commit_date,
+            first_snapshot.total_complexity,
+        )
+
+    if last_snapshot:
+        print(
+            "Last snapshot:",
+            last_snapshot.commit_date,
+            last_snapshot.total_complexity,
+        )
+
+    evolution_data = [
+        {
+            "commit": snapshot.commit_hash,
+            "date": snapshot.commit_date.isoformat(),
+            "month": snapshot.month,
+            "total_complexity": float(
+                snapshot.total_complexity or 0
+            ),
+            "avg_complexity": float(
+                snapshot.average_complexity or 0
+            ),
+            "function_count": int(
+                snapshot.function_count or 0
+            ),
+            "nloc": int(snapshot.nloc or 0),
+            "file_count": int(
+                snapshot.file_count or 0
+            ),
+        }
+        for snapshot in snapshots
+    ]
+
+    commits = []
+
+    if repo_path.exists() and (repo_path / ".git").exists():
+        try:
+            commits = get_commit_history(
+                repo_path,
+                limit=50,
+            )
+        except subprocess.CalledProcessError as error:
+            print(
+                f"Failed to load commit history for "
+                f"{repository.name}: {error}"
+            )
+        except (OSError, ValueError) as error:
+            print(
+                f"Could not read commit history for "
+                f"{repository.name}: {error}"
+            )
 
     return render(
         request,
@@ -545,5 +594,7 @@ def project_detail(request, pk):
         {
             "repository": repository,
             "commits": commits,
-        }
+            "evolution_data": evolution_data,
+            "snapshot_count": snapshot_count,
+        },
     )

@@ -1,0 +1,3 @@
+project,commit,date,month,total_complexity,avg_complexity,function_count,nloc,file_count
+healthchecks,fb4bf168440ee4b3cfffc8b9335abab0e40d099e,2026-06-27,2026-06,6429.0,1.8787258912916422,3422,25516,399
+healthchecks,5086d282ea33831e8c86eb9d0802dc2602c66ef7,2026-07-31,2026-07,6448.0,1.874963652224484,3439,25649,402

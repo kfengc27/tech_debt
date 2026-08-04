@@ -2,6 +2,8 @@
 
 {% block content %}
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+
 <style>
     .project-page {
         padding: 24px;
@@ -482,6 +484,226 @@
         }
     }
 
+
+    /* Evolution charts */
+    .evolution-dashboard {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .evolution-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+        padding: 20px 22px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+    }
+
+    .evolution-toolbar-title {
+        margin: 0;
+        color: #172033;
+        font-size: 21px;
+        font-weight: 700;
+    }
+
+    .evolution-toolbar-description {
+        margin-top: 6px;
+        color: #64748b;
+        font-size: 13px;
+    }
+
+    .timeframe-group {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+    }
+
+    .timeframe-label {
+        color: #64748b;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .timeframe-controls {
+        display: flex;
+        gap: 7px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .timeframe-btn {
+        padding: 7px 11px;
+        border: 1px solid #dbe2ea;
+        border-radius: 8px;
+        background: #ffffff;
+        color: #64748b;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+
+    .timeframe-btn:hover {
+        color: #4f46e5;
+        border-color: #a5b4fc;
+        background: #fafaff;
+    }
+
+    .timeframe-btn.active {
+        color: #ffffff;
+        background: #172033;
+        border-color: #172033;
+    }
+
+    .evolution-chart-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+    }
+
+    .evolution-chart-card.tech-debt-card {
+        border-left: 5px solid #ef4444;
+        background: linear-gradient(180deg, #fffafa 0%, #ffffff 100%);
+    }
+
+    .evolution-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 18px;
+        padding: 20px 22px 14px;
+    }
+
+    .evolution-card-heading {
+        min-width: 0;
+    }
+
+    .evolution-card-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+        color: #172033;
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+    .evolution-card-description {
+        margin-top: 6px;
+        color: #64748b;
+        font-size: 13px;
+    }
+
+
+    @media (max-width: 900px) {
+        .evolution-card-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .evolution-card-header .timeframe-group {
+            align-items: flex-start;
+        }
+
+        .evolution-card-header .timeframe-controls {
+            justify-content: flex-start;
+        }
+    }
+
+    .chart-frame {
+        margin: 0 18px 18px;
+        min-height: 500px;
+        border: 1px solid #e2e8f0;
+        border-radius: 13px;
+        background: #ffffff;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .chart-frame canvas {
+        display: block;
+        width: 100% !important;
+        height: 500px !important;
+        max-width: 100%;
+    }
+
+    .chart-loading,
+    .chart-error {
+        width: 100%;
+        min-height: inherit;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 28px;
+        color: #64748b;
+        text-align: center;
+    }
+
+    .chart-error { color: #dc2626; }
+
+    .chart-placeholder {
+        width: 100%;
+        min-height: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 28px;
+        color: #94a3b8;
+        text-align: center;
+    }
+
+    .chart-placeholder-icon {
+        font-size: 30px;
+    }
+
+    .chart-placeholder strong {
+        color: #64748b;
+        font-size: 14px;
+    }
+
+    @media (max-width: 900px) {
+        .evolution-toolbar {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .timeframe-group {
+            align-items: flex-start;
+        }
+
+        .timeframe-controls {
+            justify-content: flex-start;
+        }
+
+        .chart-frame {
+            min-height: 400px;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .evolution-toolbar,
+        .evolution-card-header {
+            padding: 16px;
+        }
+
+        .chart-frame {
+            margin: 0 10px 10px;
+            min-height: 320px;
+        }
+    }
+
 </style>
 
 
@@ -510,12 +732,12 @@
                     </h1>
 
                     <a
-                        href="{{ repository.repo_url }}"
+                        href="{{ repository.github_url }}"
                         target="_blank"
                         rel="noopener noreferrer"
                         class="project-url"
                     >
-                        {{ repository.repo_url }}
+                        {{ repository.github_url }}
                         
                     </a>
 
@@ -578,7 +800,7 @@
             <div class="project-actions">
 
                 <a
-                    href="{{ repository.repo_url }}"
+                    href="{{ repository.github_url }}"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="action-btn btn-secondary"
@@ -678,13 +900,13 @@
             <div class="summary-card">
 
                 <div class="summary-label">
-                    Last Analyszed
+                    Last Analysed
                 </div>
 
                 <div class="summary-value">
 
-                    {% if repository.last_updated_at %}
-                        {{ repository.last_updated_at|date:"d M Y" }}
+                    {% if repository.last_analyzed_at %}
+                        {{ repository.last_analyzed_at|date:"d M Y" }}
                     {% else %}
                         Never
                     {% endif %}
@@ -692,7 +914,7 @@
                 </div>
 
                 <div class="summary-subtext">
-                    Latest repository update
+                    Latest technical debt analysis
                 </div>
 
             </div>
@@ -708,9 +930,9 @@
             <div class="tabs">
                 <a href="#" class="tab active" data-tab="overview-tab">Overview</a>
                 <a href="#" class="tab" data-tab="metrics-tab">Metrics</a>
+                <a href="#" class="tab" data-tab="evolution-tab">Evolution Charts</a>
                 <a href="#" class="tab" data-tab="commits-tab">Commit History</a>
                 <a href="#" class="tab" data-tab="analysis-tab">Analysis History</a>
-                <a href="#" class="tab" data-tab="evolution-tab">Evolution</a>
             </div>
 
             <!-- Overview -->
@@ -974,11 +1196,92 @@
             </div>
 
             <div id="evolution-tab" class="tab-pane">
-                <div class="empty-state">
-                    Evolution charts will be displayed here.
+
+                {{ evolution_data|json_script:"evolution-data" }}
+
+                <div class="evolution-dashboard">
+                    <div class="evolution-toolbar">
+                        <div>
+                            <h2 class="evolution-toolbar-title">Evolution Charts</h2>
+                            <div class="evolution-toolbar-description">
+                                Interactive charts generated from the repository complexity history. Each chart has an independent time range.
+                            </div>
+                        </div>
+                    </div>
+
+                    <section class="evolution-chart-card tech-debt-card">
+                        <div class="evolution-card-header">
+                            <div class="evolution-card-heading">
+                                <h3 class="evolution-card-title"><span aria-hidden="true">🔥</span>Tech Debt Over Time</h3>
+                                <div class="evolution-card-description">
+                                    Total cyclomatic complexity over time. Rising segments are red and falling segments are green.
+                                </div>
+                            </div>
+                            <div class="timeframe-group" data-chart="tech-debt">
+                                <div class="timeframe-label">Time range</div>
+                                <div class="timeframe-controls" aria-label="Tech debt chart timeframe">
+                                    <button type="button" class="timeframe-btn" data-range="1m">1M</button>
+                                    <button type="button" class="timeframe-btn" data-range="3m">3M</button>
+                                    <button type="button" class="timeframe-btn" data-range="6m">6M</button>
+                                    <button type="button" class="timeframe-btn" data-range="1y">1Y</button>
+                                    <button type="button" class="timeframe-btn" data-range="3y">3Y</button>
+                                    <button type="button" class="timeframe-btn" data-range="5y">5Y</button>
+                                    <button type="button" class="timeframe-btn active" data-range="all">ALL</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-frame"><canvas id="tech-debt-canvas"></canvas></div>
+                    </section>
+
+                    <section class="evolution-chart-card">
+                        <div class="evolution-card-header">
+                            <div class="evolution-card-heading">
+                                <h3 class="evolution-card-title"><span aria-hidden="true">📌</span>Complexity Envelope Segments</h3>
+                                <div class="evolution-card-description">
+                                    Rolling minimum and maximum complexity values reveal the changing complexity envelope.
+                                </div>
+                            </div>
+                            <div class="timeframe-group" data-chart="envelope">
+                                <div class="timeframe-label">Time range</div>
+                                <div class="timeframe-controls" aria-label="Complexity envelope chart timeframe">
+                                    <button type="button" class="timeframe-btn" data-range="1m">1M</button>
+                                    <button type="button" class="timeframe-btn" data-range="3m">3M</button>
+                                    <button type="button" class="timeframe-btn" data-range="6m">6M</button>
+                                    <button type="button" class="timeframe-btn" data-range="1y">1Y</button>
+                                    <button type="button" class="timeframe-btn" data-range="3y">3Y</button>
+                                    <button type="button" class="timeframe-btn" data-range="5y">5Y</button>
+                                    <button type="button" class="timeframe-btn active" data-range="all">ALL</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-frame"><canvas id="envelope-canvas"></canvas></div>
+                    </section>
+
+                    <section class="evolution-chart-card">
+                        <div class="evolution-card-header">
+                            <div class="evolution-card-heading">
+                                <h3 class="evolution-card-title"><span aria-hidden="true">📉</span>Complexity Smoothed</h3>
+                                <div class="evolution-card-description">
+                                    A moving-average trend reduces short-term noise while preserving long-term direction.
+                                </div>
+                            </div>
+                            <div class="timeframe-group" data-chart="smoothed">
+                                <div class="timeframe-label">Time range</div>
+                                <div class="timeframe-controls" aria-label="Smoothed complexity chart timeframe">
+                                    <button type="button" class="timeframe-btn" data-range="1m">1M</button>
+                                    <button type="button" class="timeframe-btn" data-range="3m">3M</button>
+                                    <button type="button" class="timeframe-btn" data-range="6m">6M</button>
+                                    <button type="button" class="timeframe-btn" data-range="1y">1Y</button>
+                                    <button type="button" class="timeframe-btn" data-range="3y">3Y</button>
+                                    <button type="button" class="timeframe-btn" data-range="5y">5Y</button>
+                                    <button type="button" class="timeframe-btn active" data-range="all">ALL</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-frame"><canvas id="smoothed-canvas"></canvas></div>
+                    </section>
                 </div>
             </div>
-
         </div>
 
     </div>
@@ -988,28 +1291,293 @@
     document.addEventListener("DOMContentLoaded", function () {
         const tabs = document.querySelectorAll(".tab");
         const panes = document.querySelectorAll(".tab-pane");
+        const chartInstances = {};
+        const selectedRanges = {
+            "tech-debt": "all",
+            "envelope": "all",
+            "smoothed": "all"
+        };
+
+        function readEvolutionData() {
+            const element = document.getElementById("evolution-data");
+            if (!element) return [];
+
+            try {
+                const parsed = JSON.parse(element.textContent);
+                if (!Array.isArray(parsed)) return [];
+
+                return parsed
+                    .map(function (row) {
+                        return {
+                            date: new Date(row.date),
+                            dateLabel: row.date,
+                            commit: row.commit || "",
+                            totalComplexity: Number(row.total_complexity),
+                            avgComplexity: Number(row.avg_complexity || 0),
+                            functionCount: Number(row.function_count || 0),
+                            nloc: Number(row.nloc || 0),
+                            fileCount: Number(row.file_count || 0)
+                        };
+                    })
+                    .filter(function (row) {
+                        return !Number.isNaN(row.date.getTime()) && Number.isFinite(row.totalComplexity);
+                    })
+                    .sort(function (a, b) { return a.date - b.date; });
+            } catch (error) {
+                console.error("Unable to parse evolution_data:", error);
+                return [];
+            }
+        }
+
+        const allData = readEvolutionData();
+
+        function subtractRange(date, range) {
+            const result = new Date(date.getTime());
+            const value = parseInt(range, 10);
+
+            if (range.endsWith("m")) result.setMonth(result.getMonth() - value);
+            if (range.endsWith("y")) result.setFullYear(result.getFullYear() - value);
+            return result;
+        }
+
+        function filterByRange(range) {
+            if (!allData.length || range === "all") return allData.slice();
+            const latest = allData[allData.length - 1].date;
+            const cutoff = subtractRange(latest, range);
+            return allData.filter(function (row) { return row.date >= cutoff; });
+        }
+
+        function formatDate(date) {
+            return new Intl.DateTimeFormat("en-AU", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric"
+            }).format(date);
+        }
+
+        function movingWindow(values, windowSize, reducer) {
+            return values.map(function (_, index) {
+                const start = Math.max(0, index - windowSize + 1);
+                return reducer(values.slice(start, index + 1));
+            });
+        }
+
+        function chartWindowSize(length) {
+            return Math.max(2, Math.min(8, Math.round(length * 0.12)));
+        }
+
+        function commonOptions(yTitle) {
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: "index", intersect: false },
+                animation: { duration: 250 },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: "top",
+                        align: "start",
+                        labels: { usePointStyle: true, boxWidth: 8, color: "#475569" }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            afterTitle: function (items) {
+                                const item = items[0];
+                                const raw = item && item.chart.$sourceRows ? item.chart.$sourceRows[item.dataIndex] : null;
+                                return raw && raw.commit ? "Commit: " + raw.commit.slice(0, 8) : "";
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: "#64748b", maxTicksLimit: 10, maxRotation: 0 }
+                    },
+                    y: {
+                        beginAtZero: false,
+                        grid: { color: "rgba(148, 163, 184, 0.18)" },
+                        ticks: { color: "#64748b" },
+                        title: { display: true, text: yTitle, color: "#475569" }
+                    }
+                }
+            };
+        }
+
+        function emptyCanvas(canvasId, message) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            const frame = canvas.parentElement;
+            frame.innerHTML = '<div class="chart-placeholder"><div class="chart-placeholder-icon">📊</div><strong>' +
+                message + '</strong><span>Run the historical complexity analysis and reload this page.</span></div>';
+        }
+
+        function renderTechDebt(rows) {
+            if (!rows.length) return emptyCanvas("tech-debt-canvas", "No complexity history is available");
+            if (chartInstances["tech-debt"]) chartInstances["tech-debt"].destroy();
+
+            const canvas = document.getElementById("tech-debt-canvas");
+            chartInstances["tech-debt"] = new Chart(canvas, {
+                type: "line",
+                data: {
+                    labels: rows.map(function (row) { return formatDate(row.date); }),
+                    datasets: [{
+                        label: "Total complexity",
+                        data: rows.map(function (row) { return row.totalComplexity; }),
+                        borderWidth: 2.5,
+                        pointRadius: rows.length > 80 ? 0 : 3,
+                        pointHoverRadius: 5,
+                        tension: 0.18,
+                        fill: false,
+                        segment: {
+                            borderColor: function (context) {
+                                return context.p1.parsed.y >= context.p0.parsed.y ? "#ef4444" : "#16a34a";
+                            }
+                        },
+                        pointBackgroundColor: "#334155"
+                    }]
+                },
+                options: commonOptions("Total cyclomatic complexity")
+            });
+            chartInstances["tech-debt"].$sourceRows = rows;
+        }
+
+        function renderEnvelope(rows) {
+            if (!rows.length) return emptyCanvas("envelope-canvas", "No complexity history is available");
+            if (chartInstances.envelope) chartInstances.envelope.destroy();
+
+            const values = rows.map(function (row) { return row.totalComplexity; });
+            const windowSize = chartWindowSize(values.length);
+            const lower = movingWindow(values, windowSize, function (window) { return Math.min.apply(null, window); });
+            const upper = movingWindow(values, windowSize, function (window) { return Math.max.apply(null, window); });
+
+            chartInstances.envelope = new Chart(document.getElementById("envelope-canvas"), {
+                type: "line",
+                data: {
+                    labels: rows.map(function (row) { return formatDate(row.date); }),
+                    datasets: [
+                        {
+                            label: "Lower envelope",
+                            data: lower,
+                            borderColor: "#16a34a",
+                            backgroundColor: "rgba(22, 163, 74, 0.08)",
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            tension: 0.2,
+                            fill: false
+                        },
+                        {
+                            label: "Upper envelope",
+                            data: upper,
+                            borderColor: "#ef4444",
+                            backgroundColor: "rgba(79, 70, 229, 0.12)",
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            tension: 0.2,
+                            fill: "-1"
+                        },
+                        {
+                            label: "Observed complexity",
+                            data: values,
+                            borderColor: "rgba(71, 85, 105, 0.55)",
+                            borderWidth: 1,
+                            pointRadius: 0,
+                            tension: 0.12,
+                            fill: false
+                        }
+                    ]
+                },
+                options: commonOptions("Total cyclomatic complexity")
+            });
+            chartInstances.envelope.$sourceRows = rows;
+        }
+
+        function renderSmoothed(rows) {
+            if (!rows.length) return emptyCanvas("smoothed-canvas", "No complexity history is available");
+            if (chartInstances.smoothed) chartInstances.smoothed.destroy();
+
+            const values = rows.map(function (row) { return row.totalComplexity; });
+            const windowSize = chartWindowSize(values.length);
+            const smoothed = movingWindow(values, windowSize, function (window) {
+                return window.reduce(function (sum, value) { return sum + value; }, 0) / window.length;
+            });
+
+            chartInstances.smoothed = new Chart(document.getElementById("smoothed-canvas"), {
+                type: "line",
+                data: {
+                    labels: rows.map(function (row) { return formatDate(row.date); }),
+                    datasets: [
+                        {
+                            label: "Observed complexity",
+                            data: values,
+                            borderColor: "rgba(148, 163, 184, 0.55)",
+                            borderWidth: 1.2,
+                            pointRadius: 0,
+                            tension: 0.12,
+                            fill: false
+                        },
+                        {
+                            label: windowSize + "-point moving average",
+                            data: smoothed,
+                            borderColor: "#4f46e5",
+                            backgroundColor: "rgba(79, 70, 229, 0.10)",
+                            borderWidth: 3,
+                            pointRadius: 0,
+                            tension: 0.28,
+                            fill: true
+                        }
+                    ]
+                },
+                options: commonOptions("Total cyclomatic complexity")
+            });
+            chartInstances.smoothed.$sourceRows = rows;
+        }
+
+        function renderChart(chartName) {
+            const rows = filterByRange(selectedRanges[chartName]);
+            if (chartName === "tech-debt") renderTechDebt(rows);
+            if (chartName === "envelope") renderEnvelope(rows);
+            if (chartName === "smoothed") renderSmoothed(rows);
+        }
+
+        function renderAllCharts() {
+            renderChart("tech-debt");
+            renderChart("envelope");
+            renderChart("smoothed");
+        }
 
         tabs.forEach(function (tab) {
             tab.addEventListener("click", function (event) {
                 event.preventDefault();
-
                 const targetId = tab.dataset.tab;
 
-                tabs.forEach(function (item) {
-                    item.classList.remove("active");
-                });
-
-                panes.forEach(function (pane) {
-                    pane.classList.remove("active");
-                });
-
+                tabs.forEach(function (item) { item.classList.remove("active"); });
+                panes.forEach(function (pane) { pane.classList.remove("active"); });
                 tab.classList.add("active");
 
                 const targetPane = document.getElementById(targetId);
+                if (targetPane) targetPane.classList.add("active");
 
-                if (targetPane) {
-                    targetPane.classList.add("active");
+                if (targetId === "evolution-tab") {
+                    window.setTimeout(function () {
+                        if (!chartInstances["tech-debt"]) renderAllCharts();
+                        Object.values(chartInstances).forEach(function (chart) { chart.resize(); });
+                    }, 30);
                 }
+            });
+        });
+
+        document.querySelectorAll(".timeframe-group[data-chart]").forEach(function (group) {
+            const chartName = group.dataset.chart;
+            const buttons = group.querySelectorAll(".timeframe-btn");
+
+            buttons.forEach(function (button) {
+                button.addEventListener("click", function () {
+                    buttons.forEach(function (item) { item.classList.remove("active"); });
+                    button.classList.add("active");
+                    selectedRanges[chartName] = button.dataset.range;
+                    renderChart(chartName);
+                });
             });
         });
     });

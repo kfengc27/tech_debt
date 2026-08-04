@@ -15,6 +15,20 @@ class Repository(models.Model):
         blank=True,
     )
 
+    project_language = models.CharField(
+        max_length=255,
+        blank=True,
+    )
+
+
+    project_category = models.CharField(
+        max_length=255,
+        blank=True,
+    )
+
+
+
+
     is_downloaded = models.BooleanField(
         default=False,
     )
@@ -35,6 +49,8 @@ class Repository(models.Model):
     updated_at = models.DateTimeField(
         auto_now=True,
     )
+
+
 
     class Meta:
         ordering = ["name", "github_url"]
@@ -272,3 +288,38 @@ class ProjectStatus(models.Model):
 
     def __str__(self):
         return f"{self.repository.name} - {self.project_status}"
+
+
+
+
+class ComplexitySnapshot(models.Model):
+    repository = models.ForeignKey(
+        Repository,
+        on_delete=models.CASCADE,
+        related_name="complexity_snapshots",
+    )
+
+    commit_hash = models.CharField(max_length=40)
+    commit_date = models.DateField()
+    month = models.CharField(max_length=7, blank=True)
+
+    total_complexity = models.FloatField(default=0)
+    average_complexity = models.FloatField(default=0)
+    function_count = models.PositiveIntegerField(default=0)
+    nloc = models.PositiveIntegerField(default=0)
+    file_count = models.PositiveIntegerField(default=0)
+
+    analyzed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["commit_date"]
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=["repository", "commit_hash"],
+                name="unique_repository_complexity_commit",
+            )
+        ]
+
+    class Meta:
+        db_table = "ComplexitySnapshot"
